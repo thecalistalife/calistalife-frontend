@@ -1,9 +1,8 @@
-import { loadStripe, Stripe } from '@stripe/stripe-js';
+// Stripe integration placeholder
+// This would load Stripe.js when Stripe packages are compatible with React 19
 
-const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
+export const stripePromise = Promise.resolve(null);
 
-if (!stripePublishableKey) {
-  console.warn('VITE_STRIPE_PUBLIC_KEY not found in environment variables');
-}
-
-export const stripePromise: Promise<Stripe | null> = loadStripe(stripePublishableKey || '');
+export const isStripeEnabled = () => {
+  return !!import.meta.env.VITE_STRIPE_PUBLIC_KEY;
+};
