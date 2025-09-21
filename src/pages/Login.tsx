@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/auth';
 
+import GoogleLoginButton from '../components/GoogleLoginButton';
+
 export default function Login() {
   const navigate = useNavigate();
   const { login, loading, error } = useAuthStore();
@@ -46,9 +48,15 @@ export default function Login() {
             {loading ? 'Signing in...' : 'Sign in'}
           </button>
         </form>
-        <p className="mt-4 text-sm">
-          Don’t have an account? <Link to="/register" className="text-blue-600">Create one</Link>
-        </p>
+
+        <div className="my-4 text-center text-sm text-gray-500">or</div>
+
+        <GoogleLoginButton />
+
+        <div className="mt-4 text-sm flex justify-between">
+          <Link to="/register" className="text-blue-600">Create account</Link>
+          <Link to="/forgot-password" className="text-blue-600">Forgot password?</Link>
+        </div>
       </div>
     </div>
   );

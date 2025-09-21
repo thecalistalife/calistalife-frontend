@@ -27,14 +27,60 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+let isRefreshing = false;
+let pendingRequests: Array<(token: string | null) => void> = [];
+
+async function refreshToken(): Promise<string | null> {
+  try {
+    const res = await api.post('/api/auth/refresh', {});
+    const newToken = (res.data?.data?.token as string) ?? null;
+    if (newToken) {
+      try { localStorage.setItem('auth_token', newToken); } catch {}
+    }
+    return newToken;
+  } catch {
+    try { localStorage.removeItem('auth_token'); } catch {}
+    return null;
+  }
+}
+
 api.interceptors.response.use(
   (res) => res,
-  (error: AxiosError) => {
-    if (error.response?.status === 401) {
-      // Optionally trigger a logout or token refresh flow here
-      // For now, just remove any stale token
-      try { localStorage.removeItem('auth_token'); } catch {}
+  async (error: AxiosError) => {
+    const status = error.response?.status;
+    const original: any = error.config || {};
+
+    if (status === 401 && !original._retry) {
+      original._retry = true;
+
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          pendingRequests.push((token) => {
+            if (token) {
+              original.headers = original.headers ?? {};
+              original.headers.Authorization = `Bearer ${token}`;
+              resolve(api(original));
+            } else {
+              reject(error);
+            }
+          });
+        });
+      }
+
+      isRefreshing = true;
+      const newToken = await refreshToken();
+      isRefreshing = false;
+      const queue = [...pendingRequests];
+      pendingRequests = [];
+      queue.forEach((cb) => cb(newToken));
+
+      if (newToken) {
+        original.headers = original.headers ?? {};
+        original.headers.Authorization = `Bearer ${newToken}`;
+        return api(original);
+      }
     }
+
     return Promise.reject(error);
   }
 );
@@ -52,6 +98,12 @@ export const AuthAPI = {
     api.post<ApiResponse<{ user: any; token: string }>>('/api/auth/login', payload),
   me: () => api.get<ApiResponse<any>>('/api/auth/me'),
   logout: () => api.post<ApiResponse<undefined>>('/api/auth/logout'),
+  refresh: () => api.post<ApiResponse<{ token: string }>>('/api/auth/refresh', {}),
+  forgotPassword: (payload: { email: string }) => api.post<ApiResponse<void>>('/api/auth/password/forgot', payload),
+  resetPassword: (payload: { token: string; email: string; newPassword: string }) => api.post<ApiResponse<void>>('/api/auth/password/reset', payload),
+  requestEmailVerification: () => api.post<ApiResponse<void>>('/api/auth/verify/request', {}),
+  verifyEmail: (payload: { token: string; email: string }) => api.post<ApiResponse<void>>('/api/auth/verify/confirm', payload),
+  googleLogin: (payload: { idToken: string }) => api.post<ApiResponse<{ user: any; token: string }>>('/api/auth/google', payload),
 };
 
 export const PaymentsAPI = {
