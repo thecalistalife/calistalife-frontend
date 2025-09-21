@@ -53,3 +53,8 @@ export const AuthAPI = {
   me: () => api.get<ApiResponse<any>>('/api/auth/me'),
   logout: () => api.post<ApiResponse<undefined>>('/api/auth/logout'),
 };
+
+export const PaymentsAPI = {
+  createPaymentIntent: (payload: { amount: number; currency?: string; metadata?: Record<string, string> }) =>
+    api.post<ApiResponse<{ clientSecret: string; paymentIntentId: string }>>('/api/payments/intent', payload),
+};

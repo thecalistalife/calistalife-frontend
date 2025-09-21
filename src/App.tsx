@@ -7,6 +7,7 @@ import { ColorGradeOverlay } from './components/ColorGradeOverlay';
 import { HomeAnimated } from './pages/HomeAnimated';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Profile from './pages/Profile';
 import {
   Collections,
   Category,
@@ -51,6 +52,7 @@ function App() {
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>

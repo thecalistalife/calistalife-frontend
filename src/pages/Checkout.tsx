@@ -52,14 +52,10 @@ export const Checkout = () => {
                 {step === 'payment' && (
                   <Step>
                     <h2 className="text-xl font-bold mb-4">Payment</h2>
-                    <form className="grid grid-cols-1 gap-4">
-                      <input className="border rounded p-3" placeholder="Card number" />
-                      <div className="grid grid-cols-2 gap-4">
-                        <input className="border rounded p-3" placeholder="MM/YY" />
-                        <input className="border rounded p-3" placeholder="CVC" />
-                      </div>
-                      <input className="border rounded p-3" placeholder="Name on card" />
-                    </form>
+                    <div className="text-center py-8">
+                      <p className="text-gray-600 mb-4">Secure payment processing coming soon!</p>
+                      <p className="text-sm text-gray-500">For demo purposes, proceed to review your order.</p>
+                    </div>
                     <div className="mt-6 flex justify-between">
                       <button onClick={() => setStep('shipping')} className="px-6 py-3 border-2 border-black rounded-lg font-bold uppercase tracking-wider hover:bg-black hover:text-white transition-all">
                         Back
