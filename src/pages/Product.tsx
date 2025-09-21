@@ -1,23 +1,35 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
 import { Plus, Minus, Heart, Truck, Shield, RotateCcw } from 'lucide-react';
-import { products } from '../data/index';
 import { useCartStore, useWishlistStore } from '../store/index';
 import { formatPrice, cn } from '../utils/index';
 import { ProductGallery } from '../components/ProductGallery';
 import { MagneticButton } from '../components/MagneticButton';
+import { ProductsAPI } from '../lib/api';
 
 export const Product = () => {
   const { id } = useParams();
-  // Image state handled by ProductGallery
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
   const [quantity, setQuantity] = useState(1);
   
-  const product = products.find(p => p.id === id);
+  const { data, isLoading } = useQuery({
+    queryKey: ['product', id],
+    enabled: !!id,
+    queryFn: async () => (await ProductsAPI.get(id!)).data.data as any,
+  });
+
+  const product = data ? { ...data, id: data.id || data._id || data.slug } : null;
   const addToCart = useCartStore(state => state.addItem);
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlistStore();
   
+  if (isLoading) {
+    return (
+      <div className="pt-16 lg:pt-20 min-h-screen flex items-center justify-center">Loading...</div>
+    );
+  }
+
   if (!product) {
     return (
       <div className="pt-16 lg:pt-20 min-h-screen flex items-center justify-center">

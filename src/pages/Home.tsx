@@ -1,11 +1,25 @@
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { HeroAnimated, ProductCard } from '../components/index';
-import { products, collections } from '../data/index';
+import { ProductsAPI } from '../lib/api';
 
 export const Home = () => {
-  // Get featured products (new arrivals)
-  const newArrivals = products.filter(product => product.isNew).slice(0, 4);
-  const bestSellers = products.filter(product => product.isBestSeller).slice(0, 4);
+  const { data: collectionsRes } = useQuery({
+    queryKey: ['collections'],
+    queryFn: async () => (await ProductsAPI.collections()).data.data as any[],
+  });
+  const { data: newArrivalsRes } = useQuery({
+    queryKey: ['new-arrivals'],
+    queryFn: async () => (await ProductsAPI.newArrivals(4)).data.data as any[],
+  });
+  const { data: bestSellersRes } = useQuery({
+    queryKey: ['best-sellers'],
+    queryFn: async () => (await ProductsAPI.bestSellers(4)).data.data as any[],
+  });
+
+  const collections = (collectionsRes ?? []).map((c: any) => ({ ...c, id: c.id || c._id || c.slug }));
+  const newArrivals = (newArrivalsRes ?? []).map((p: any) => ({ ...p, id: p.id || p._id || p.slug }));
+  const bestSellers = (bestSellersRes ?? []).map((p: any) => ({ ...p, id: p.id || p._id || p.slug }));
 
   return (
     <div className="pt-16 lg:pt-20">

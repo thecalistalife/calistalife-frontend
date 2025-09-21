@@ -110,3 +110,30 @@ export const PaymentsAPI = {
   createPaymentIntent: (payload: { amount: number; currency?: string; metadata?: Record<string, string> }) =>
     api.post<ApiResponse<{ clientSecret: string; paymentIntentId: string }>>('/api/payments/intent', payload),
 };
+
+// Product APIs
+export type ProductQuery = {
+  page?: number;
+  limit?: number;
+  search?: string;
+  category?: string;
+  collection?: string;
+  brand?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  sizes?: string[];
+  colors?: string[];
+  inStock?: boolean;
+  sortBy?: 'featured' | 'newest' | 'price-low' | 'price-high' | 'name' | 'rating';
+};
+
+export const ProductsAPI = {
+  list: (params: ProductQuery) => api.get<ApiResponse<any[]>>('/api/products', { params }),
+  featured: (limit = 8) => api.get<ApiResponse<any[]>>('/api/products/featured', { params: { limit } }),
+  newArrivals: (limit = 8) => api.get<ApiResponse<any[]>>('/api/products/new-arrivals', { params: { limit } }),
+  bestSellers: (limit = 8) => api.get<ApiResponse<any[]>>('/api/products/best-sellers', { params: { limit } }),
+  collections: () => api.get<ApiResponse<any[]>>('/api/products/collections'),
+  filters: () => api.get<ApiResponse<any>>('/api/products/filters'),
+  get: (idOrSlug: string) => api.get<ApiResponse<any>>(`/api/products/${encodeURIComponent(idOrSlug)}`),
+  searchSuggestions: (q: string) => api.get<ApiResponse<any[]>>('/api/products/search/suggestions', { params: { q } }),
+};

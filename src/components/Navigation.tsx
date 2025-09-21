@@ -19,6 +19,21 @@ export const Navigation = () => {
   const cartItems = useCartStore((state) => state.getTotalItems());
   const wishlistItems = useWishlistStore((state) => state.getTotalItems());
   const { query, setQuery } = useSearchStore();
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchSuggestions = async (q: string) => {
+    if (!q || q.length < 2) { setSuggestions([]); return; }
+    try {
+      setLoading(true);
+      const { ProductsAPI } = await import('../lib/api');
+      const res = await ProductsAPI.searchSuggestions(q);
+      const list = (res.data.data ?? []).map((p: any) => ({ ...p, id: p.id || p._id || p.slug }));
+      setSuggestions(list);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const navLinks = [
     { name: 'Home', href: '/' },
@@ -218,10 +233,10 @@ export const Navigation = () => {
               <input
                 type="text"
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
                 placeholder="What are you looking for?"
                 className="w-full p-4 border-2 border-black rounded-lg text-xl focus:outline-none focus:border-orange-500"
                 autoFocus
+                onChange={(e) => { setQuery(e.target.value); fetchSuggestions(e.target.value); }}
               />
               <button 
                 type="submit"
@@ -231,6 +246,25 @@ export const Navigation = () => {
                 <Search size={20} />
               </button>
             </form>
+            {/* Suggestions */}
+            <div className="mt-4">
+              {loading && <div className="text-gray-500">Loading...</div>}
+              {!loading && suggestions.length > 0 && (
+                <ul className="divide-y rounded-lg border">
+                  {suggestions.map((s) => (
+                    <li key={s.id} className="p-3 hover:bg-gray-50">
+                      <Link to={`/product/${s.slug || s.id}`} onClick={() => setIsSearchOpen(false)} className="flex items-center gap-3">
+                        <img src={(s.images && s.images[0]) || '/vite.svg'} alt={s.name} className="w-10 h-10 object-cover rounded" />
+                        <div className="flex-1">
+                          <div className="font-medium">{s.name}</div>
+                          <div className="text-xs text-gray-500">{s.category}</div>
+                        </div>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
         </div>
       )}

@@ -1,10 +1,11 @@
 import { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Filter, Grid, List, X } from 'lucide-react';
 import { ProductCard } from '../components/index';
-import { products, categories, sizes, colors } from '../data/index';
 import { useSearchStore } from '../store/index';
-import { filterProducts, sortProducts, cn } from '../utils/index';
+import { cn } from '../utils/index';
 import type { SortOption } from '../types/index';
+import { ProductsAPI, type ProductQuery } from '../lib/api';
 
 export const Collections = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -12,10 +13,33 @@ export const Collections = () => {
   
   const { query, filters, sortBy, setFilters, setSortBy, resetFilters } = useSearchStore();
 
-  const filteredAndSortedProducts = useMemo(() => {
-    const filtered = filterProducts(products, query, filters);
-    return sortProducts(filtered, sortBy);
-  }, [query, filters, sortBy]);
+  const params: ProductQuery = {
+    page: 1,
+    limit: 24,
+    search: query || undefined,
+    category: filters.categories[0] || undefined,
+    collection: filters.collections[0] || undefined,
+    brand: filters.brands[0] || undefined,
+    minPrice: filters.priceRange[0] || undefined,
+    maxPrice: filters.priceRange[1] || undefined,
+    sizes: filters.sizes.length ? filters.sizes : undefined,
+    colors: filters.colors.length ? filters.colors : undefined,
+    inStock: filters.inStock || undefined,
+    sortBy,
+  };
+
+  const { data: filterData } = useQuery({
+    queryKey: ['filters'],
+    queryFn: async () => (await ProductsAPI.filters()).data.data as any,
+  });
+
+  const { data: listData, isLoading } = useQuery({
+    queryKey: ['products', params],
+    queryFn: async () => (await ProductsAPI.list(params)).data,
+  });
+
+  const products = listData?.data ?? [];
+  const total = listData?.pagination?.total ?? products.length;
 
   const handleFilterChange = (key: keyof typeof filters, value: any) => {
     setFilters({ [key]: value });
@@ -112,8 +136,8 @@ export const Collections = () => {
             </div>
           </div>
 
-          <div className="mt-4 text-sm text-gray-600">
-            Showing {filteredAndSortedProducts.length} of {products.length} products
+            <div className="mt-4 text-sm text-gray-600">
+            {isLoading ? 'Loading products...' : `Showing ${products.length} of ${total} products`}
           </div>
         </div>
       </section>
@@ -133,7 +157,7 @@ export const Collections = () => {
             <div className="mb-6">
               <h4 className="font-semibold mb-3">Categories</h4>
               <div className="space-y-2">
-                {categories.map(category => (
+                {(filterData?.categories ?? []).map((category: string) => (
                   <label key={category} className="flex items-center">
                     <input
                       type="checkbox"
@@ -173,7 +197,7 @@ export const Collections = () => {
             <div className="mb-6">
               <h4 className="font-semibold mb-3">Sizes</h4>
               <div className="flex flex-wrap gap-2">
-                {sizes.map(size => (
+                {(filterData?.sizes ?? []).map((size: string) => (
                   <button
                     key={size}
                     onClick={() => handleArrayFilterToggle('sizes', size)}
@@ -194,7 +218,7 @@ export const Collections = () => {
             <div className="mb-6">
               <h4 className="font-semibold mb-3">Colors</h4>
               <div className="flex flex-wrap gap-2">
-                {colors.map(color => (
+                {(filterData?.colors ?? []).map((color: string) => (
                   <button
                     key={color}
                     onClick={() => handleArrayFilterToggle('colors', color)}
@@ -230,7 +254,9 @@ export const Collections = () => {
       {/* Products Grid */}
       <section className="py-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          {filteredAndSortedProducts.length === 0 ? (
+          {isLoading ? (
+            <div className="text-center py-12">Loading...</div>
+          ) : products.length === 0 ? (
             <div className="text-center py-12">
               <h3 className="text-xl font-bold mb-4">No products found</h3>
               <p className="text-gray-600 mb-6">Try adjusting your filters or search terms</p>
@@ -248,13 +274,19 @@ export const Collections = () => {
                 ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                 : "grid-cols-1"
             )}>
-              {filteredAndSortedProducts.map(product => (
-                <ProductCard 
-                  key={product.id} 
-                  product={product}
-                  className={viewMode === 'list' ? "flex flex-row" : ""}
-                />
-              ))}
+              {products.map((p: any) => {
+                const product = {
+                  ...p,
+                  id: p.id || p._id || p.slug,
+                };
+                return (
+                  <ProductCard 
+                    key={product.id}
+                    product={product}
+                    className={viewMode === 'list' ? "flex flex-row" : ""}
+                  />
+                );
+              })}
             </div>
           )}
         </div>
