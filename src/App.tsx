@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { NavigationAnimated, Footer, MiniCartDrawer, FreeShippingBar, ThemeShiftController } from './components';
+import Toaster from './components/Toaster';
 import { SmoothScrollProvider } from './components/SmoothScrollProvider';
 import ProtectedRoute from './components/ProtectedRoute';
 import { ColorGradeOverlay } from './components/ColorGradeOverlay';
@@ -38,6 +39,7 @@ function App() {
             <NavigationAnimated />
             <FreeShippingBar />
             <MiniCartDrawer />
+            <Toaster />
             <main>
               <Routes>
                 <Route path="/" element={<HomeAnimated />} />

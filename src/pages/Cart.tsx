@@ -93,9 +93,9 @@ export const Cart = () => {
             </div>
 
             <MagneticButton strength={0.2} as="div">
-              <button className="w-full py-4 bg-black text-white font-bold uppercase tracking-wider rounded-lg hover:bg-red-500 transition-colors">
+              <Link to="/checkout" className="block text-center w-full py-4 bg-black text-white font-bold uppercase tracking-wider rounded-lg hover:bg-red-500 transition-colors">
                 Checkout
-              </button>
+              </Link>
             </MagneticButton>
             <p className="text-xs text-gray-500 mt-3">Taxes and shipping calculated at checkout.</p>
           </div>

@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCartStore } from '../store';
+import { OrdersAPI } from '../lib/api';
+import { useToast } from '../hooks/useToast';
 import { formatPrice } from '../utils';
-import SimplePaymentForm from '../components/StripeCheckoutForm';
-import RazorpayCheckout from '../components/RazorpayCheckout';
+import { useNavigate } from 'react-router-dom';
 
 const Step = ({ children }: { children: React.ReactNode }) => (
   <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.25 }}>
@@ -11,40 +12,78 @@ const Step = ({ children }: { children: React.ReactNode }) => (
   </motion.div>
 );
 
-const PaymentForm = () => {
-  const items = useCartStore((s) => s.items);
-  const subtotal = items.reduce((sum, it) => sum + it.product.price * it.quantity, 0);
-  const hasRazorpay = !!import.meta.env.VITE_RAZORPAY_KEY_ID;
-
-  if (hasRazorpay) {
-    return (
-      <RazorpayCheckout
-        amountINR={subtotal}
-        onSuccess={() => alert('Payment successful!')}
-        onError={(msg) => alert(`Payment failed: ${msg}`)}
-      />
-    );
-  }
-
-  const handlePaymentSuccess = () => {
-    alert('Payment successful! (Demo mode)');
-  };
-  const handlePaymentError = (error: string) => {
-    alert(`Payment failed: ${error}`);
-  };
+const PaymentSectionCOD = () => {
   return (
-    <SimplePaymentForm 
-      onSuccess={handlePaymentSuccess}
-      onError={handlePaymentError}
-      totalAmount={subtotal * 100}
-    />
+    <div className="rounded-lg border p-4 bg-gray-50">
+      <h3 className="font-semibold mb-2">Cash on Delivery (COD)</h3>
+      <p className="text-sm text-gray-700">
+        You will pay in cash when your order is delivered. No online payment is required right now.
+      </p>
+    </div>
   );
 };
 
 export const Checkout = () => {
   const items = useCartStore((s) => s.items);
+  const clearCart = useCartStore((s) => s.clearCart);
   const subtotal = items.reduce((sum, it) => sum + it.product.price * it.quantity, 0);
   const [step, setStep] = useState<'shipping' | 'payment' | 'review'>('shipping');
+  const toast = useToast();
+  const navigate = useNavigate();
+  // simple local shipping form state (MVP)
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [address1, setAddress1] = useState('');
+  const [city, setCity] = useState('');
+  const [zip, setZip] = useState('');
+  const [email, setEmail] = useState('');
+
+  const validateShipping = () => {
+    if (!firstName || !lastName || !address1 || !city || !zip || !email) {
+      toast.error('Please fill all shipping fields');
+      return false;
+    }
+    const emailOk = /.+@.+\..+/.test(email);
+    if (!emailOk) {
+      toast.error('Please enter a valid email');
+      return false;
+    }
+    if (zip.length < 4) {
+      toast.error('Please enter a valid postal code');
+      return false;
+    }
+    return true;
+  };
+
+  const placeOrder = async () => {
+    try {
+      const orderPayload = {
+        items: items.map((it) => ({
+          productId: it.product.id,
+          name: it.product.name,
+          image: it.product.images?.[0],
+          size: it.size,
+          color: it.color,
+          quantity: it.quantity,
+          price: it.product.price,
+        })),
+        shippingAddress: { firstName, lastName, address1, city, zip, email },
+        billingAddress: { firstName, lastName, address1, city, zip, email },
+        subtotal: Math.round(subtotal),
+        shippingCost: 0,
+        tax: 0,
+        totalAmount: Math.round(subtotal),
+        payment: { method: 'cod', status: 'pending' },
+      };
+      const res = await OrdersAPI.create(orderPayload);
+      const data = res.data.data as any;
+      clearCart();
+      toast.success(`Order placed: ${data.orderNumber}`);
+      navigate('/order-success', { state: { orderNumber: data.orderNumber } });
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to place order');
+    }
+  };
 
   return (
     <div className="pt-16 lg:pt-20">
@@ -65,26 +104,26 @@ export const Checkout = () => {
                 {step === 'shipping' && (
                   <Step>
                     <h2 className="text-xl font-bold mb-4">Shipping Address</h2>
-                    <form className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <input className="border rounded p-3" placeholder="First name" />
-                      <input className="border rounded p-3" placeholder="Last name" />
-                      <input className="md:col-span-2 border rounded p-3" placeholder="Address" />
-                      <input className="border rounded p-3" placeholder="City" />
-                      <input className="border rounded p-3" placeholder="Postal code" />
-                      <input className="md:col-span-2 border rounded p-3" placeholder="Email" />
+<form className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <input className="border rounded p-3" placeholder="First name" value={firstName} onChange={(e)=>setFirstName(e.target.value)} required />
+                      <input className="border rounded p-3" placeholder="Last name" value={lastName} onChange={(e)=>setLastName(e.target.value)} required />
+                      <input className="md:col-span-2 border rounded p-3" placeholder="Address" value={address1} onChange={(e)=>setAddress1(e.target.value)} required />
+                      <input className="border rounded p-3" placeholder="City" value={city} onChange={(e)=>setCity(e.target.value)} required />
+                      <input className="border rounded p-3" placeholder="Postal code" value={zip} onChange={(e)=>setZip(e.target.value)} required />
+                      <input className="md:col-span-2 border rounded p-3" placeholder="Email" value={email} onChange={(e)=>setEmail(e.target.value)} required />
                     </form>
                     <div className="mt-6 flex justify-end">
-                      <button onClick={() => setStep('payment')} className="px-6 py-3 bg-black text-white rounded-lg font-bold uppercase tracking-wider hover:bg-orange-500 transition-colors">
+                      <button onClick={() => { if (validateShipping()) setStep('payment'); }} className="px-6 py-3 bg-black text-white rounded-lg font-bold uppercase tracking-wider hover:bg-orange-500 transition-colors">
                         Continue to payment
                       </button>
                     </div>
                   </Step>
                 )}
 
-                {step === 'payment' && (
+{step === 'payment' && (
                   <Step>
                     <h2 className="text-xl font-bold mb-4">Payment</h2>
-                    <PaymentForm />
+                    <PaymentSectionCOD />
                     <div className="mt-6 flex justify-between">
                       <button onClick={() => setStep('shipping')} className="px-6 py-3 border-2 border-black rounded-lg font-bold uppercase tracking-wider hover:bg-black hover:text-white transition-all">
                         Back
@@ -111,7 +150,7 @@ export const Checkout = () => {
                       <button onClick={() => setStep('payment')} className="px-6 py-3 border-2 border-black rounded-lg font-bold uppercase tracking-wider hover:bg-black hover:text-white transition-all">
                         Back
                       </button>
-                      <button onClick={() => alert('Order placed (demo)!')} className="px-6 py-3 bg-black text-white rounded-lg font-bold uppercase tracking-wider hover:bg-orange-500 transition-colors">
+                      <button onClick={placeOrder} className="px-6 py-3 bg-black text-white rounded-lg font-bold uppercase tracking-wider hover:bg-orange-500 transition-colors">
                         Place order
                       </button>
                     </div>

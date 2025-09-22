@@ -113,6 +113,12 @@ export const AuthAPI = {
 export const PaymentsAPI = {
   createPaymentIntent: (payload: { amount: number; currency?: string; metadata?: Record<string, string> }) =>
     api.post<ApiResponse<{ clientSecret: string; paymentIntentId: string }>>('/api/payments/intent', payload),
+  createRazorpayOrder: (amountPaise: number) =>
+    api.post<ApiResponse<{ orderId: string; amount: number; currency: string }>>('/api/payments/razorpay/order', { amount: amountPaise }),
+};
+
+export const OrdersAPI = {
+  create: (payload: any) => api.post<ApiResponse<{ id: string; orderNumber: string }>>('/api/orders/create', payload),
 };
 
 // Product APIs

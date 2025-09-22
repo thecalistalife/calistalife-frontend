@@ -16,17 +16,27 @@ export { default as Wishlist } from './Wishlist';
 export const Search = () => <CollectionsPage />;
 
 
-export const OrderSuccess = () => (
-  <div className="pt-16 lg:pt-20 min-h-screen flex items-center justify-center">
-    <div className="text-center">
-      <h1 className="text-3xl font-bold mb-4 text-green-600">Order Successful!</h1>
-      <p className="mb-8">Thank you for your purchase.</p>
-      <Link to="/" className="px-8 py-4 bg-black text-white font-bold uppercase tracking-wider hover:bg-red-500 transition-colors">
-        Continue Shopping
-      </Link>
+import { useLocation } from 'react-router-dom';
+
+export const OrderSuccess = () => {
+  const location = useLocation() as any;
+  const orderNumber = location?.state?.orderNumber as string | undefined;
+  return (
+    <div className="pt-16 lg:pt-20 min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <h1 className="text-3xl font-bold mb-4 text-green-600">Order Successful!</h1>
+        {orderNumber ? (
+          <p className="mb-8">Your order number is <span className="font-semibold">{orderNumber}</span>.</p>
+        ) : (
+          <p className="mb-8">Thank you for your purchase.</p>
+        )}
+        <Link to="/" className="px-8 py-4 bg-black text-white font-bold uppercase tracking-wider hover:bg-red-500 transition-colors">
+          Continue Shopping
+        </Link>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export const About = () => (
   <div className="pt-16 lg:pt-20">
