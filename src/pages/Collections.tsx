@@ -61,6 +61,9 @@ export const Collections = () => {
     queryFn: async () => (await ProductsAPI.searchSuggestions(query)).data.data as any[],
   });
 
+  // Keyboard navigation for suggestions
+  const [activeIndex, setActiveIndex] = useState<number>(-1);
+
   const products = listData?.data ?? [];
   const total = listData?.pagination?.total ?? products.length;
 
@@ -130,17 +133,33 @@ export const Collections = () => {
                 onChange={(e) => {
                   resetFilters();
                   useSearchStore.getState().setQuery(e.target.value);
+                  setActiveIndex(-1);
+                }}
+                onKeyDown={(e) => {
+                  const len = suggestions?.length ?? 0;
+                  if (len === 0) return;
+                  if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    setActiveIndex((i) => (i + 1) % len);
+                  } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    setActiveIndex((i) => (i - 1 + len) % len);
+                  } else if (e.key === 'Enter' && activeIndex >= 0) {
+                    const s = suggestions![activeIndex];
+                    navigate(`/product/${encodeURIComponent(s.slug || s.id)}`);
+                  }
                 }}
                 placeholder="Search products..."
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-black"
               />
               {(query?.trim().length ?? 0) >= 2 && (suggestions?.length ?? 0) > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-50">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-50" onMouseLeave={() => setActiveIndex(-1)}>
                   <ul className="max-h-80 overflow-auto divide-y">
                     {suggestions!.map((s: any, idx: number) => (
                       <li key={idx}>
                         <button
-                          className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 text-left"
+                          className={`w-full flex items-center gap-3 p-3 text-left ${activeIndex === idx ? 'bg-gray-50' : 'hover:bg-gray-50'}`}
+                          onMouseEnter={() => setActiveIndex(idx)}
                           onClick={() => navigate(`/product/${encodeURIComponent(s.slug || s.id)}`)}
                         >
                           <img

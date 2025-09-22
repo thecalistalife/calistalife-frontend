@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/auth';
+import { useToast } from '../hooks/useToast';
 
 export default function Register() {
   const navigate = useNavigate();
   const { user, register, loading, error } = useAuthStore();
+  const toast = useToast();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -17,8 +19,11 @@ export default function Register() {
     e.preventDefault();
     try {
       await register(name, email, password);
+      toast.success('Account created!');
       // navigation handled by effect after user set
-    } catch {}
+    } catch (e: any) {
+      toast.error('Registration failed');
+    }
   };
 
   return (

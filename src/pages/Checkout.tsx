@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useCartStore } from '../store';
 import { formatPrice } from '../utils';
 import SimplePaymentForm from '../components/StripeCheckoutForm';
+import RazorpayCheckout from '../components/RazorpayCheckout';
 
 const Step = ({ children }: { children: React.ReactNode }) => (
   <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.25 }}>
@@ -13,20 +14,29 @@ const Step = ({ children }: { children: React.ReactNode }) => (
 const PaymentForm = () => {
   const items = useCartStore((s) => s.items);
   const subtotal = items.reduce((sum, it) => sum + it.product.price * it.quantity, 0);
-  
+  const hasRazorpay = !!import.meta.env.VITE_RAZORPAY_KEY_ID;
+
+  if (hasRazorpay) {
+    return (
+      <RazorpayCheckout
+        amountINR={subtotal}
+        onSuccess={() => alert('Payment successful!')}
+        onError={(msg) => alert(`Payment failed: ${msg}`)}
+      />
+    );
+  }
+
   const handlePaymentSuccess = () => {
     alert('Payment successful! (Demo mode)');
   };
-  
   const handlePaymentError = (error: string) => {
     alert(`Payment failed: ${error}`);
   };
-  
   return (
     <SimplePaymentForm 
       onSuccess={handlePaymentSuccess}
       onError={handlePaymentError}
-      totalAmount={subtotal * 100} // Convert to cents
+      totalAmount={subtotal * 100}
     />
   );
 };

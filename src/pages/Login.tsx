@@ -3,10 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/auth';
 
 import GoogleLoginButton from '../components/GoogleLoginButton';
+import { useToast } from '../hooks/useToast';
 
 export default function Login() {
   const navigate = useNavigate();
   const { user, login, loading, error } = useAuthStore();
+  const toast = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -19,8 +21,11 @@ export default function Login() {
     e.preventDefault();
     try {
       await login(email, password);
-      // navigate will be triggered by effect above when user is set
-    } catch {}
+      toast.success('Welcome back!');
+      // navigate is triggered by the effect when user is set
+    } catch (e: any) {
+      toast.error('Login failed');
+    }
   };
 
   return (

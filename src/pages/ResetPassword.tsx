@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/auth';
+import { useToast } from '../hooks/useToast';
 
 export default function ResetPassword() {
   const { resetPassword, loading, error } = useAuthStore();
+  const toast = useToast();
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const [password, setPassword] = useState('');
@@ -18,8 +20,11 @@ export default function ResetPassword() {
     e.preventDefault();
     try {
       await resetPassword(token, email, password);
+      toast.success('Password reset successful. Please sign in.');
       navigate('/login');
-    } catch {}
+    } catch (e: any) {
+      toast.error('Reset failed');
+    }
   };
 
   return (

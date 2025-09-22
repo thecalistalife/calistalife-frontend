@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useAuthStore } from '../store/auth';
+import { useToast } from '../hooks/useToast';
 
 export default function ForgotPassword() {
   const { forgotPassword, loading, error } = useAuthStore();
+  const toast = useToast();
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
 
@@ -11,7 +13,10 @@ export default function ForgotPassword() {
     try {
       await forgotPassword(email);
       setSent(true);
-    } catch {}
+      toast.success('Reset link sent (if the email exists).');
+    } catch (e: any) {
+      toast.error('Failed to send reset link');
+    }
   };
 
   return (

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../store/auth';
+import { useToast } from '../hooks/useToast';
 
 export default function VerifyEmail() {
   const { verifyEmail, requestEmailVerification, loading, error } = useAuthStore();
+  const toast = useToast();
   const [params] = useSearchParams();
   const [done, setDone] = useState(false);
   const token = params.get('token') || '';
@@ -15,7 +17,10 @@ export default function VerifyEmail() {
         try {
           await verifyEmail(token, email);
           setDone(true);
-        } catch {}
+          toast.success('Email verified!');
+        } catch (e: any) {
+          toast.error('Verification failed');
+        }
       }
     };
     run();
