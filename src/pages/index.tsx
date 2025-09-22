@@ -11,14 +11,7 @@ export { Checkout } from './Checkout';
 export const Category = () => <CollectionsPage />;
 
 
-export const Wishlist = () => (
-  <div className="pt-16 lg:pt-20 min-h-screen">
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-3xl font-bold mb-8">Wishlist</h1>
-      <p>Wishlist functionality would be implemented here.</p>
-    </div>
-  </div>
-);
+export { default as Wishlist } from './Wishlist';
 
 export const Search = () => <CollectionsPage />;
 

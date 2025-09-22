@@ -136,50 +136,18 @@ export const HeroAnimated = () => {
                   className="block"
                   variants={letterVariants}
                 >
-                  {"THE".split("").map((letter, index) => (
-                    <motion.span
-                      key={`the-${index}`}
-                      variants={letterVariants}
-                      className="inline-block hover:text-red-600 transition-colors cursor-default"
-                      whileHover={{ scale: 1.2, rotate: [-5, 5, -5, 0] }}
-                    >
-                      {letter}
-                    </motion.span>
-                  ))}
-                </motion.span>
-                <motion.span 
-                  className="block"
-                  variants={letterVariants}
-                >
                   {"CALISTA".split("").map((letter, index) => (
                     <motion.span
                       key={index}
                       variants={letterVariants}
-                      className="inline-block relative cursor-default bg-clip-text text-transparent"
+                      className="inline-block relative cursor-default text-red-600 font-black"
                       whileHover={{ 
                         scale: 1.2, 
                         rotate: [-5, 5, -5, 0],
                         transition: { duration: 0.3 }
                       }}
-                      style={{
-                        background: 'linear-gradient(45deg, #dc2626, #ef4444, #b91c1c)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        backgroundClip: 'text'
-                      }}
                     >
-                      <span className="relative z-10">{letter}</span>
-                      <motion.span
-                        className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity duration-300"
-                        style={{
-                          background: 'linear-gradient(45deg, #b91c1c, #ef4444, #dc2626)',
-                          WebkitBackgroundClip: 'text',
-                          WebkitTextFillColor: 'transparent',
-                          backgroundClip: 'text'
-                        }}
-                      >
-                        {letter}
-                      </motion.span>
+                      {letter}
                     </motion.span>
                   ))}
                 </motion.span>

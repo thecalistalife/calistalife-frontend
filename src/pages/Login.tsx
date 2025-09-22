@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/auth';
 
@@ -6,15 +6,20 @@ import GoogleLoginButton from '../components/GoogleLoginButton';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login, loading, error } = useAuthStore();
+  const { user, login, loading, error } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  // Redirect to home as soon as a user exists (works for Google login as well)
+  useEffect(() => {
+    if (user) navigate('/');
+  }, [user, navigate]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await login(email, password);
-      navigate('/');
+      // navigate will be triggered by effect above when user is set
     } catch {}
   };
 

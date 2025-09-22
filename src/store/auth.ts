@@ -21,6 +21,8 @@ interface AuthState {
   resetPassword: (token: string, email: string, newPassword: string) => Promise<void>;
   requestEmailVerification: () => Promise<void>;
   verifyEmail: (token: string, email: string) => Promise<void>;
+  updateProfile: (payload: { name?: string; email?: string; phone?: string }) => Promise<void>;
+  changePassword: (payload: { currentPassword: string; newPassword: string }) => Promise<void>;
   fetchMe: () => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -104,6 +106,28 @@ export const useAuthStore = create<AuthState>()(
           set({ loading: false });
         } catch (err: any) {
           set({ error: err?.response?.data?.message ?? 'Request failed', loading: false });
+          throw err;
+        }
+      },
+      async updateProfile(payload) {
+        set({ loading: true, error: null });
+        try {
+          const res = await AuthAPI.updateProfile(payload);
+          const updatedUser = (res.data.data as any) ?? null;
+          if (updatedUser) set({ user: updatedUser });
+          set({ loading: false });
+        } catch (err: any) {
+          set({ error: err?.response?.data?.message ?? 'Update failed', loading: false });
+          throw err;
+        }
+      },
+      async changePassword({ currentPassword, newPassword }) {
+        set({ loading: true, error: null });
+        try {
+          await AuthAPI.changePassword({ currentPassword, newPassword });
+          set({ loading: false });
+        } catch (err: any) {
+          set({ error: err?.response?.data?.message ?? 'Password update failed', loading: false });
           throw err;
         }
       },

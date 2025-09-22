@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, ShoppingCart, Heart, Search, User, ChevronDown } from 'lucide-react';
 import { useCartStore } from '../store';
+import { useAuthStore } from '../store/auth';
 import clsx from 'clsx';
 
 export const NavigationAnimated = () => {
@@ -92,19 +93,11 @@ export const NavigationAnimated = () => {
           >
             <Link to="/" className="flex items-center">
               <motion.h1 
-                className={clsx(
-                  "text-2xl lg:text-3xl font-black uppercase tracking-tighter transition-colors",
-                  scrolled ? "text-black" : "text-black"
-                )}
+                className="text-2xl lg:text-3xl font-black uppercase tracking-tighter gradient-text-red"
+                whileHover={{ scale: 1.05 }}
+                transition={{ duration: 0.2 }}
               >
-                <span className="mr-1">THE</span>
-                <motion.span
-                  className="ml-1 gradient-text-red"
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  CALISTA
-                </motion.span>
+                CALISTA
               </motion.h1>
             </Link>
           </motion.div>
@@ -163,38 +156,48 @@ export const NavigationAnimated = () => {
 
           {/* Action Icons */}
           <div className="flex items-center gap-4">
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              className={clsx(
-                "p-2 transition-colors",
-                scrolled ? "hover:text-red-600" : "hover:text-red-600"
-              )}
-            >
-              <Search className="w-5 h-5" />
-            </motion.button>
+            {(() => { const user = useAuthStore.getState().user; return (
+              <>
+                <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                  <Link
+                    to="/search"
+                    aria-label="Search"
+                    className={clsx(
+                      "p-2 block transition-colors",
+                      scrolled ? "hover:text-red-600" : "hover:text-red-600"
+                    )}
+                  >
+                    <Search className="w-5 h-5" />
+                  </Link>
+                </motion.div>
 
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              className={clsx(
-                "p-2 transition-colors",
-                scrolled ? "hover:text-red-600" : "hover:text-red-600"
-              )}
-            >
-              <User className="w-5 h-5" />
-            </motion.button>
+                <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                  <Link
+                    to={user ? "/profile" : "/login"}
+                    aria-label={user ? "Profile" : "Login"}
+                    className={clsx(
+                      "p-2 block transition-colors",
+                      scrolled ? "hover:text-red-600" : "hover:text-red-600"
+                    )}
+                  >
+                    <User className="w-5 h-5" />
+                  </Link>
+                </motion.div>
 
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              className={clsx(
-                "p-2 transition-colors",
-                scrolled ? "hover:text-red-600" : "hover:text-red-600"
-              )}
-            >
-              <Heart className="w-5 h-5" />
-            </motion.button>
+                <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                  <Link
+                    to="/wishlist"
+                    aria-label="Wishlist"
+                    className={clsx(
+                      "p-2 block transition-colors",
+                      scrolled ? "hover:text-red-600" : "hover:text-red-600"
+                    )}
+                  >
+                    <Heart className="w-5 h-5" />
+                  </Link>
+                </motion.div>
+              </>
+            ); })()}
 
             <motion.div
               whileHover={{ scale: 1.1 }}

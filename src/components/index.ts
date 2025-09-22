@@ -4,7 +4,6 @@ export { Hero } from './Hero';
 export { HeroAnimated } from './HeroAnimated';
 export { ProductCard } from './ProductCard';
 export { Footer } from './Footer';
-export { CustomCursor } from './CustomCursor';
 export { Carousel } from './Carousel';
 export { MagneticButton } from './MagneticButton';
 export { ProductGallery } from './ProductGallery';

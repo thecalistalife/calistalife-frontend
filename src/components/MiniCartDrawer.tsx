@@ -12,6 +12,8 @@ export const MiniCartDrawer = () => {
   const removeItem = useCartStore((s) => s.removeItem);
 
   const subtotal = items.reduce((sum, it) => sum + it.product.price * it.quantity, 0);
+  const FREE_SHIPPING_THRESHOLD_INR = 999;
+  const qualifies = subtotal >= FREE_SHIPPING_THRESHOLD_INR;
 
   return (
     <AnimatePresence>
@@ -33,11 +35,16 @@ export const MiniCartDrawer = () => {
             transition={{ duration: 0.25 }}
             className="fixed right-0 top-0 bottom-0 w-full sm:w-[420px] bg-white z-[61] shadow-2xl flex flex-col"
           >
-            <div className="p-4 border-b flex items-center justify-between">
-              <h2 className="text-lg font-bold">Your Cart</h2>
-              <button onClick={toggleCart} aria-label="Close">
-                <X className="w-5 h-5" />
-              </button>
+            <div className="p-4 border-b">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold">Your Cart</h2>
+                <button onClick={toggleCart} aria-label="Close">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              {qualifies && (
+                <div className="mt-3 text-sm font-semibold text-green-600 bg-green-50 border border-green-200 rounded-md px-3 py-2">🎉 Congrats! Free delivery unlocked.</div>
+              )}
             </div>
 
             <div className="flex-1 overflow-auto p-4 space-y-4">

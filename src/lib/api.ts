@@ -1,6 +1,6 @@
 import axios, { AxiosError } from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:10000';
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -104,6 +104,10 @@ export const AuthAPI = {
   requestEmailVerification: () => api.post<ApiResponse<void>>('/api/auth/verify/request', {}),
   verifyEmail: (payload: { token: string; email: string }) => api.post<ApiResponse<void>>('/api/auth/verify/confirm', payload),
   googleLogin: (payload: { idToken: string }) => api.post<ApiResponse<{ user: any; token: string }>>('/api/auth/google', payload),
+  updateProfile: (payload: { name?: string; email?: string; phone?: string }) =>
+    api.put<ApiResponse<any>>('/api/auth/profile', payload),
+  changePassword: (payload: { currentPassword: string; newPassword: string }) =>
+    api.put<ApiResponse<void>>('/api/auth/password', payload),
 };
 
 export const PaymentsAPI = {

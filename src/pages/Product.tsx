@@ -17,7 +17,16 @@ export const Product = () => {
   const { data, isLoading } = useQuery({
     queryKey: ['product', id],
     enabled: !!id,
-    queryFn: async () => (await ProductsAPI.get(id!)).data.data as any,
+    queryFn: async () => {
+      try {
+        return (await ProductsAPI.get(id!)).data.data as any;
+      } catch (e) {
+        const { products: sample } = await import('../data/index');
+        const found = sample.find((p) => p.id === id || p.slug === id);
+        if (!found) throw e;
+        return found as any;
+      }
+    },
   });
 
   const product = data ? { ...data, id: data.id || data._id || data.slug } : null;
@@ -165,7 +174,7 @@ export const Product = () => {
             <div className="grid grid-cols-1 gap-4">
               <div className="flex items-center gap-3 p-4 border border-gray-200 rounded">
                 <Truck size={20} className="text-gray-600" />
-                <span className="text-sm">Free shipping on orders over $100</span>
+                <span className="text-sm">Free shipping on orders over ₹999</span>
               </div>
               <div className="flex items-center gap-3 p-4 border border-gray-200 rounded">
                 <RotateCcw size={20} className="text-gray-600" />

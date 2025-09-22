@@ -1,6 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Filter, Grid, List, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { ProductCard } from '../components/index';
 import { useSearchStore } from '../store/index';
 import { cn } from '../utils/index';
@@ -10,6 +11,8 @@ import { ProductsAPI, type ProductQuery } from '../lib/api';
 export const Collections = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const navigate = useNavigate();
+  const inputWrapRef = useRef<HTMLDivElement>(null);
   
   const { query, filters, sortBy, setFilters, setSortBy, resetFilters } = useSearchStore();
 
@@ -35,7 +38,27 @@ export const Collections = () => {
 
   const { data: listData, isLoading } = useQuery({
     queryKey: ['products', params],
-    queryFn: async () => (await ProductsAPI.list(params)).data,
+    queryFn: async () => {
+      try {
+        return (await ProductsAPI.list(params)).data;
+      } catch (e) {
+        const { products: sample } = await import('../data/index');
+        return {
+          success: true,
+          message: 'Using sample data (API unavailable)',
+          data: sample,
+          pagination: { page: 1, limit: sample.length, total: sample.length, pages: 1 },
+        } as any;
+      }
+    },
+  });
+
+  // Search suggestions (debounced via react-query enable)
+  const { data: suggestions } = useQuery({
+    queryKey: ['suggestions', query],
+    enabled: (query?.trim().length ?? 0) >= 2,
+    staleTime: 30000,
+    queryFn: async () => (await ProductsAPI.searchSuggestions(query)).data.data as any[],
   });
 
   const products = listData?.data ?? [];
@@ -100,7 +123,48 @@ export const Collections = () => {
               )}
             </div>
 
-            <div className="flex items-center gap-4">
+            <div ref={inputWrapRef} className="flex items-center gap-4 flex-1 relative">
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => {
+                  resetFilters();
+                  useSearchStore.getState().setQuery(e.target.value);
+                }}
+                placeholder="Search products..."
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-black"
+              />
+              {(query?.trim().length ?? 0) >= 2 && (suggestions?.length ?? 0) > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-50">
+                  <ul className="max-h-80 overflow-auto divide-y">
+                    {suggestions!.map((s: any, idx: number) => (
+                      <li key={idx}>
+                        <button
+                          className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 text-left"
+                          onClick={() => navigate(`/product/${encodeURIComponent(s.slug || s.id)}`)}
+                        >
+                          <img
+                            src={(s.images && s.images[0]) || 'https://placehold.co/48x48'}
+                            alt={s.name}
+                            className="w-12 h-12 object-cover rounded"
+                            onError={(e) => {
+                              const t = e.target as HTMLImageElement;
+                              t.src = `https://placehold.co/48x48?text=${encodeURIComponent(s.name)}`;
+                            }}
+                          />
+                          <div className="flex-1">
+                            <div className="font-medium text-sm">{s.name}</div>
+                            <div className="text-xs text-gray-500">{s.category}</div>
+                          </div>
+                          {typeof s.price === 'number' && (
+                            <div className="text-sm font-semibold">₹{Math.round(s.price)}</div>
+                          )}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as SortOption)}
