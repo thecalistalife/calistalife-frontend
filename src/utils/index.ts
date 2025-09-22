@@ -1,10 +1,11 @@
 import type { Product, FilterOptions, SortOption } from '../types/index';
 
 export const formatPrice = (price: number): string => {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('en-IN', {
     style: 'currency',
-    currency: 'USD',
-  }).format(price);
+    currency: 'INR',
+    maximumFractionDigits: 0,
+  }).format(Math.round(price));
 };
 
 export const formatRating = (rating: number): string => {
