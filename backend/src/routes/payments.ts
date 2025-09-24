@@ -1,12 +1,15 @@
-import { Router } from 'express';
+import express, { Router } from 'express';
 import { body } from 'express-validator';
-import { createPaymentIntent, handleStripeWebhook, createRazorpayOrder } from '../controllers/payments';
+import { createPaymentIntent, handleStripeWebhook, createRazorpayOrder, handleRazorpayWebhook } from '../controllers/payments';
 import { handleValidationErrors, optionalAuth } from '../middleware';
 
 const router = Router();
 
-// Stripe webhook (no auth required, raw body)
-router.post('/webhook', handleStripeWebhook);
+// Stripe webhook (no auth required) - requires raw body for signature verification
+router.post('/webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);
+
+// Razorpay webhook (no auth required) - requires raw body for signature verification
+router.post('/razorpay/webhook', express.raw({ type: 'application/json' }), handleRazorpayWebhook);
 
 // Create payment intent (optional auth - can be used by guests or authenticated users)
 const createIntentValidation = [

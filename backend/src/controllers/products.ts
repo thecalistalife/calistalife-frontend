@@ -21,7 +21,7 @@ export const getProducts = async (req: Request, res: Response, next: NextFunctio
       sortBy = 'featured'
     }: ProductQuery = req.query;
 
-    const useSupabase = process.env.USE_SUPABASE_PRODUCTS === 'true';
+  const useSupabase = true;
 
     // Calculate pagination
     const pageNum = parseInt(page.toString());
@@ -82,65 +82,6 @@ export const getProducts = async (req: Request, res: Response, next: NextFunctio
       res.status(200).json(response);
       return;
     }
-
-    // Fallback to MongoDB
-    const { Product, Collection } = await import('@/models');
-    const filter: any = {};
-    if (search) {
-      filter.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { tags: { $in: [new RegExp(search, 'i')] } }
-      ];
-    }
-    if (category) filter.category = category;
-    if (collection) filter.collection = collection;
-    if (brand) filter.brand = brand;
-    if (minPrice || maxPrice) {
-      filter.price = {};
-      if (minPrice) filter.price.$gte = Number(minPrice);
-      if (maxPrice) filter.price.$lte = Number(maxPrice);
-    }
-    if (sizes) {
-      const sizeArray = Array.isArray(sizes) ? sizes : [sizes];
-      filter.sizes = { $in: sizeArray };
-    }
-    if (colors) {
-      const colorArray = Array.isArray(colors) ? colors : [colors];
-      filter.colors = { $in: colorArray };
-    }
-    if ((inStock as any) === 'true' || inStock === true) filter.inStock = true;
-
-    let sort: any = {};
-    switch (sortBy) {
-      case 'newest': sort = { createdAt: -1 }; break;
-      case 'price-low': sort = { price: 1 }; break;
-      case 'price-high': sort = { price: -1 }; break;
-      case 'name': sort = { name: 1 }; break;
-      case 'rating': sort = { rating: -1 }; break;
-      case 'featured':
-      default: sort = { isFeatured: -1, isBestSeller: -1, isNew: -1, rating: -1 }; break;
-    }
-
-    const skip = (pageNum - 1) * limitNum;
-    const [products, total] = await Promise.all([
-      Product.find(filter).sort(sort).skip(skip).limit(limitNum).lean(),
-      Product.countDocuments(filter)
-    ]);
-
-    const response: ApiResponse<IProduct[]> = {
-      success: true,
-      message: 'Products retrieved successfully',
-      data: products,
-      pagination: {
-        page: pageNum,
-        limit: limitNum,
-        total,
-        pages: Math.ceil(total / limitNum)
-      }
-    };
-
-    res.status(200).json(response);
   } catch (error) {
     next(error);
   }
@@ -150,39 +91,19 @@ export const getProducts = async (req: Request, res: Response, next: NextFunctio
 export const getProduct = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    const useSupabase = process.env.USE_SUPABASE_PRODUCTS === 'true';
-
-    if (useSupabase) {
-      // Try ID then slug
-      let { data, error } = await supabase.from('products').select('*').eq('id', id).single();
-      if (error && error.code !== 'PGRST116') throw error; // ignore not found here
-      if (!data) {
-        const bySlug = await supabase.from('products').select('*').eq('slug', id).single();
-        if (bySlug.error) throw bySlug.error;
-        data = bySlug.data;
-      }
-      if (!data) {
-        res.status(404).json({ success: false, message: 'Product not found' });
-        return;
-      }
-      const response: ApiResponse<any> = { success: true, message: 'Product retrieved successfully', data };
-      res.status(200).json(response);
-      return;
+    // Try ID then slug via Supabase only
+    let { data, error } = await supabase.from('products').select('*').eq('id', id).single();
+    if (error && error.code !== 'PGRST116') throw error; // ignore not found here
+    if (!data) {
+      const bySlug = await supabase.from('products').select('*').eq('slug', id).single();
+      if (bySlug.error) throw bySlug.error;
+      data = bySlug.data;
     }
-
-    // Fallback Mongo
-    const { Product } = await import('@/models');
-    let product = await Product.findById(id);
-    if (!product) {
-      product = await Product.findOne({ slug: id });
-    }
-
-    if (!product) {
+    if (!data) {
       res.status(404).json({ success: false, message: 'Product not found' });
       return;
     }
-
-    const response: ApiResponse<IProduct> = { success: true, message: 'Product retrieved successfully', data: product };
+    const response: ApiResponse<any> = { success: true, message: 'Product retrieved successfully', data };
     res.status(200).json(response);
   } catch (error) {
     next(error);
@@ -194,7 +115,7 @@ export const getFeaturedProducts = async (req: Request, res: Response, next: Nex
   try {
     const { limit = 8 } = req.query;
 
-    if (process.env.USE_SUPABASE_PRODUCTS === 'true') {
+    {
       const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -207,19 +128,6 @@ export const getFeaturedProducts = async (req: Request, res: Response, next: Nex
       return;
     }
 
-    const { Product } = await import('@/models');
-    const products = await Product.find({ isFeatured: true })
-      .sort({ createdAt: -1 })
-      .limit(parseInt(limit.toString()))
-      .lean();
-
-    const response: ApiResponse<IProduct[]> = {
-      success: true,
-      message: 'Featured products retrieved successfully',
-      data: products
-    };
-
-    res.status(200).json(response);
   } catch (error) {
     next(error);
   }
@@ -230,7 +138,7 @@ export const getNewArrivals = async (req: Request, res: Response, next: NextFunc
   try {
     const { limit = 8 } = req.query;
 
-    if (process.env.USE_SUPABASE_PRODUCTS === 'true') {
+    {
       const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -243,19 +151,6 @@ export const getNewArrivals = async (req: Request, res: Response, next: NextFunc
       return;
     }
 
-    const { Product } = await import('@/models');
-    const products = await Product.find({ isNew: true })
-      .sort({ createdAt: -1 })
-      .limit(parseInt(limit.toString()))
-      .lean();
-
-    const response: ApiResponse<IProduct[]> = {
-      success: true,
-      message: 'New arrivals retrieved successfully',
-      data: products
-    };
-
-    res.status(200).json(response);
   } catch (error) {
     next(error);
   }
@@ -266,7 +161,7 @@ export const getBestSellers = async (req: Request, res: Response, next: NextFunc
   try {
     const { limit = 8 } = req.query;
 
-    if (process.env.USE_SUPABASE_PRODUCTS === 'true') {
+    {
       const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -280,19 +175,6 @@ export const getBestSellers = async (req: Request, res: Response, next: NextFunc
       return;
     }
 
-    const { Product } = await import('@/models');
-    const products = await Product.find({ isBestSeller: true })
-      .sort({ rating: -1, reviews: -1 })
-      .limit(parseInt(limit.toString()))
-      .lean();
-
-    const response: ApiResponse<IProduct[]> = {
-      success: true,
-      message: 'Best sellers retrieved successfully',
-      data: products
-    };
-
-    res.status(200).json(response);
   } catch (error) {
     next(error);
   }
@@ -304,7 +186,7 @@ export const getProductsByCategory = async (req: Request, res: Response, next: N
     const { category } = req.params;
     const { page = 1, limit = 12, sortBy = 'featured' } = req.query;
 
-    if (process.env.USE_SUPABASE_PRODUCTS === 'true') {
+    {
       let query = supabase.from('products').select('*', { count: 'exact' }).eq('category', category);
       switch (sortBy) {
         case 'newest': query = query.order('createdAt', { ascending: false }); break;
@@ -329,52 +211,11 @@ export const getProductsByCategory = async (req: Request, res: Response, next: N
       return;
     }
 
-    let sort: any = {};
-    switch (sortBy) {
-      case 'newest':
-        sort = { createdAt: -1 };
-        break;
-      case 'price-low':
-        sort = { price: 1 };
-        break;
-      case 'price-high':
-        sort = { price: -1 };
-        break;
-      case 'name':
-        sort = { name: 1 };
-        break;
-      default:
-        sort = { isFeatured: -1, isBestSeller: -1, rating: -1 };
-        break;
-    }
-
     const pageNum = parseInt(page.toString());
     const limitNum = parseInt(limit.toString());
-    const skip = (pageNum - 1) * limitNum;
-
-    const { Product } = await import('@/models');
-    const [products, total] = await Promise.all([
-      Product.find({ category })
-        .sort(sort)
-        .skip(skip)
-        .limit(limitNum)
-        .lean(),
-      Product.countDocuments({ category })
-    ]);
-
-    const response: ApiResponse<IProduct[]> = {
-      success: true,
-      message: `Products in category '${category}' retrieved successfully`,
-      data: products,
-      pagination: {
-        page: pageNum,
-        limit: limitNum,
-        total,
-        pages: Math.ceil(total / limitNum)
-      }
-    };
-
-    res.status(200).json(response);
+    const from = (pageNum - 1) * limitNum;
+    const to = from + limitNum - 1;
+    // Supabase handled above; this block removed Mongo fallback
   } catch (error) {
     next(error);
   }
@@ -383,7 +224,7 @@ export const getProductsByCategory = async (req: Request, res: Response, next: N
 // Get all collections
 export const getCollections = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    if (process.env.USE_SUPABASE_PRODUCTS === 'true') {
+    {
       const { data, error } = await supabase.from('collections').select('*').eq('isActive', true).order('sortOrder', { ascending: true }).order('createdAt', { ascending: false });
       if (error) throw error;
       // Fetch counts per collection
@@ -395,30 +236,6 @@ export const getCollections = async (req: Request, res: Response, next: NextFunc
       res.status(200).json(response);
       return;
     }
-
-    const { Collection } = await import('@/models');
-    const collections = await Collection.find({ isActive: true })
-      .sort({ sortOrder: 1, createdAt: -1 })
-      .lean();
-
-    // Get product counts for each collection
-    const collectionsWithCounts = await Promise.all(
-      collections.map(async (collection) => {
-        const { Product } = await import('@/models');
-        const productCount = await Product.countDocuments({ 
-          collection: collection.name 
-        });
-        return { ...collection, productCount };
-      })
-    );
-
-    const response: ApiResponse = {
-      success: true,
-      message: 'Collections retrieved successfully',
-      data: collectionsWithCounts
-    };
-
-    res.status(200).json(response);
   } catch (error) {
     next(error);
   }
@@ -427,7 +244,7 @@ export const getCollections = async (req: Request, res: Response, next: NextFunc
 // Get filter options (categories, brands, sizes, colors, price range)
 export const getFilterOptions = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    if (process.env.USE_SUPABASE_PRODUCTS === 'true') {
+    {
       const [cats, brands, sizesArr, colorsArr, minMax] = await Promise.all([
         supabase.from('products').select('category'),
         supabase.from('products').select('brand'),
@@ -451,43 +268,6 @@ export const getFilterOptions = async (req: Request, res: Response, next: NextFu
       return;
     }
 
-    const { Product, Collection } = await import('@/models');
-    const [categories, brands, sizes, colors, priceRange] = await Promise.all([
-      Product.distinct('category'),
-      Product.distinct('brand'),
-      Product.distinct('sizes'),
-      Product.distinct('colors'),
-      Product.aggregate([
-        {
-          $group: {
-            _id: null,
-            minPrice: { $min: '$price' },
-            maxPrice: { $max: '$price' }
-          }
-        }
-      ])
-    ]);
-
-    const collections = await Collection.find({ isActive: true }, 'name slug')
-      .sort({ sortOrder: 1 })
-      .lean();
-
-    const filterOptions = {
-      categories: categories.sort(),
-      collections: collections.map(c => ({ name: c.name, slug: c.slug })),
-      brands: brands.sort(),
-      sizes: sizes.flat().filter((size, index, array) => array.indexOf(size) === index).sort(),
-      colors: colors.flat().filter((color, index, array) => array.indexOf(color) === index).sort(),
-      priceRange: priceRange[0] ? [priceRange[0].minPrice, priceRange[0].maxPrice] : [0, 1000]
-    };
-
-    const response: ApiResponse = {
-      success: true,
-      message: 'Filter options retrieved successfully',
-      data: filterOptions
-    };
-
-    res.status(200).json(response);
   } catch (error) {
     next(error);
   }
@@ -503,7 +283,7 @@ export const getSearchSuggestions = async (req: Request, res: Response, next: Ne
       return;
     }
 
-    if (process.env.USE_SUPABASE_PRODUCTS === 'true') {
+    {
       const { data, error } = await supabase
         .from('products')
         .select('name,slug,price,images,category')
@@ -514,21 +294,6 @@ export const getSearchSuggestions = async (req: Request, res: Response, next: Ne
       return;
     }
 
-    const { Product } = await import('@/models');
-    const products = await Product.find(
-      { $text: { $search: q } },
-      { name: 1, slug: 1, price: 1, images: 1, category: 1 }
-    )
-      .limit(5)
-      .lean();
-
-    const response: ApiResponse = {
-      success: true,
-      message: 'Search suggestions retrieved successfully',
-      data: products
-    };
-
-    res.status(200).json(response);
   } catch (error) {
     next(error);
   }

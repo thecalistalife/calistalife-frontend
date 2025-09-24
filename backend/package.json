@@ -36,7 +36,6 @@
     "google-auth-library": "^9.15.0",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.18.1",
     "multer": "^2.0.2",
     "nodemailer": "^6.9.16",
     "stripe": "^18.5.0"

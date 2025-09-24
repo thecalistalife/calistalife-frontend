@@ -48,6 +48,64 @@ create table if not exists public.users (
 --   createdAt timestamptz default now()
 -- );
 
+-- Create collections table if not exists
+create table if not exists public.collections (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  slug text unique not null,
+  description text,
+  image text,
+  isActive boolean not null default true,
+  sortOrder int not null default 0,
+  createdAt timestamptz not null default now()
+);
+
+-- Create products table if not exists
+create table if not exists public.products (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  slug text unique not null,
+  brand text,
+  price numeric not null default 0,
+  images text[] not null default '{}',
+  description text,
+  category text,
+  collection text,
+  sizes text[] not null default '{}',
+  colors text[] not null default '{}',
+  tags text[] not null default '{}',
+  "inStock" boolean not null default true,
+  "stockQuantity" int not null default 0,
+  rating numeric not null default 0,
+  reviews int not null default 0,
+  "isNew" boolean not null default false,
+  "isBestSeller" boolean not null default false,
+  "isOnSale" boolean not null default false,
+  "isFeatured" boolean not null default false,
+  "createdAt" timestamptz not null default now()
+);
+
+-- RLS policies for collections/products (public readable)
+alter table public.collections enable row level security;
+do $$
+begin
+  if not exists (
+    select 1 from pg_policies where schemaname='public' and tablename='collections' and policyname='public read collections'
+  ) then
+    create policy "public read collections" on public.collections for select using (true);
+  end if;
+end $$;
+
+alter table public.products enable row level security;
+do $$
+begin
+  if not exists (
+    select 1 from pg_policies where schemaname='public' and tablename='products' and policyname='public read products'
+  ) then
+    create policy "public read products" on public.products for select using (true);
+  end if;
+end $$;
+
 -- Carts
 create table if not exists public.carts (
   id uuid primary key default gen_random_uuid(),
@@ -101,8 +159,14 @@ create table if not exists public.orders (
   notes text,
   stripe_session_id text,
   stripe_payment_intent_id text,
+  razorpay_order_id text,
+  razorpay_payment_id text,
   created_at timestamptz not null default now()
 );
+
+-- Add Razorpay columns if running on an existing DB
+alter table public.orders add column if not exists razorpay_order_id text;
+alter table public.orders add column if not exists razorpay_payment_id text;
 
 create table if not exists public.order_items (
   id uuid primary key default gen_random_uuid(),

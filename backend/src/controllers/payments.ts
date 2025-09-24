@@ -63,14 +63,57 @@ export const createRazorpayOrder = async (req: Request, res: Response, next: Nex
       res.status(500).json({ success: false, message: 'Razorpay is not configured' });
       return;
     }
-    const { amount } = req.body as { amount: number };
+    const { amount, orderNumber, notes } = req.body as { amount: number; orderNumber?: string; notes?: Record<string, string> };
     if (!amount || amount < 100) {
       res.status(400).json({ success: false, message: 'Amount must be at least 100 paise (₹1)' });
       return;
     }
 
-    const order = await razorpay.orders.create({ amount, currency: 'INR', receipt: `rcpt_${Date.now()}` });
-    res.status(200).json({ success: true, data: { orderId: order.id, amount: order.amount, currency: order.currency } });
+    const receipt = orderNumber || `rcpt_${Date.now()}`;
+    const order = await razorpay.orders.create({ amount, currency: 'INR', receipt, notes });
+    res.status(200).json({ success: true, data: { orderId: order.id, amount: order.amount, currency: order.currency, receipt } });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Razorpay webhook handler with signature verification
+export const handleRazorpayWebhook = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const signature = req.headers['x-razorpay-signature'] as string | undefined;
+    const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
+    if (!signature || !secret) {
+      res.status(400).json({ success: false, message: 'Missing Razorpay signature or secret' });
+      return;
+    }
+
+    const rawBody = (req.body instanceof Buffer) ? req.body : Buffer.from(JSON.stringify(req.body));
+    const crypto = await import('crypto');
+    const expected = crypto.createHmac('sha256', secret).update(rawBody).digest('hex');
+    if (expected !== signature) {
+      res.status(400).json({ success: false, message: 'Invalid Razorpay signature' });
+      return;
+    }
+
+    const payload = JSON.parse(rawBody.toString());
+    const event = payload.event as string;
+
+    // Attempt to map to an order via receipt (we use orderNumber as receipt when creating order)
+    const orderEntity = payload.payload?.order?.entity;
+    const paymentEntity = payload.payload?.payment?.entity;
+
+    if (orderEntity?.receipt) {
+      const orderNumber = orderEntity.receipt as string;
+      // Update order record by order_number
+      const updates: any = { payment_status: 'paid', razorpay_order_id: orderEntity.id };
+      if (paymentEntity?.id) updates.razorpay_payment_id = paymentEntity.id;
+      await (await import('@/utils/supabase')).supabaseAdmin
+        .from('orders')
+        .update(updates)
+        .eq('order_number', orderNumber);
+    }
+
+    res.status(200).json({ success: true, message: 'Webhook processed' });
   } catch (err) {
     next(err);
   }

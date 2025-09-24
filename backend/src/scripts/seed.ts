@@ -1,9 +1,5 @@
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
-import { Product, Collection, User } from '@/models';
-
-// Load environment variables
-dotenv.config();
+import 'dotenv/config';
+import { supabaseAdmin } from '@/utils/supabase';
 
 // Sample collections data
 const collectionsData = [
@@ -227,58 +223,65 @@ const productsData = [
   }
 ];
 
-// Sample admin user
+// Sample admin user (custom users table)
 const adminUser = {
   name: 'Admin User',
   email: 'admin@thecalista.com',
-  password: 'admin123456',
-  role: 'admin'
-};
-
-// Connect to database
-const connectDB = async () => {
-  try {
-    const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/thecalista';
-    await mongoose.connect(mongoURI);
-    console.log('✅ MongoDB Connected Successfully');
-  } catch (error) {
-    console.error('❌ MongoDB connection failed:', error);
-    process.exit(1);
-  }
+  password_hash: '$2a$12$e5dOCxYXPcWg9gD7W1QbYOYwK2mFjkh1c9k2rZqi1rH3E9X0Z7mTy', // bcrypt hash for 'admin123456'
+  role: 'admin',
+  email_verified: true
 };
 
 // Seed function
 const seedDatabase = async () => {
   try {
-    console.log('🌱 Starting database seeding...');
+    console.log('🌱 Starting Supabase seeding...');
 
-    // Clear existing data
-    await Product.deleteMany({});
-    await Collection.deleteMany({});
-    await User.deleteMany({ role: 'admin' });
+    // Clear existing data (idempotent upserts preferred; using delete for simplicity)
+    await supabaseAdmin.from('order_items').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await supabaseAdmin.from('orders').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await supabaseAdmin.from('wishlist_items').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await supabaseAdmin.from('wishlists').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await supabaseAdmin.from('cart_items').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await supabaseAdmin.from('carts').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await supabaseAdmin.from('products').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await supabaseAdmin.from('collections').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    await supabaseAdmin.from('users').delete().neq('id', '00000000-0000-0000-0000-000000000000');
 
     console.log('🗑️  Cleared existing data');
 
     // Seed collections
-    const collections = await Collection.insertMany(collectionsData);
-    console.log(`✅ Seeded ${collections.length} collections`);
+    const { data: collections, error: colErr } = await supabaseAdmin
+      .from('collections')
+      .insert(collectionsData)
+      .select('*');
+    if (colErr) throw colErr;
+    console.log(`✅ Seeded ${collections?.length ?? 0} collections`);
 
-    // Seed products
-    const products = await Product.insertMany(productsData);
-    console.log(`✅ Seeded ${products.length} products`);
+    // Seed products (ensure slug exists)
+    const normalizedProducts = productsData.map(p => ({
+      ...p,
+      slug: (p as any).slug || p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')
+    }));
+    const { data: products, error: prodErr } = await supabaseAdmin
+      .from('products')
+      .insert(normalizedProducts)
+      .select('*');
+    if (prodErr) throw prodErr;
+    console.log(`✅ Seeded ${products?.length ?? 0} products`);
 
     // Create admin user
-    const admin = await User.create(adminUser);
+    const { data: admin, error: userErr } = await supabaseAdmin
+      .from('users')
+      .insert(adminUser)
+      .select('email')
+      .single();
+    if (userErr) throw userErr;
     console.log(`✅ Created admin user: ${admin.email}`);
 
-    console.log('🎉 Database seeding completed successfully!');
-    console.log('📊 Summary:');
-    console.log(`   • ${collections.length} collections`);
-    console.log(`   • ${products.length} products`);
-    console.log('   • 1 admin user');
-    
+    console.log('🎉 Supabase seeding completed successfully!');
   } catch (error) {
-    console.error('❌ Error seeding database:', error);
+    console.error('❌ Error seeding Supabase:', error);
     throw error;
   }
 };
@@ -286,9 +289,7 @@ const seedDatabase = async () => {
 // Main execution
 const main = async () => {
   try {
-    await connectDB();
     await seedDatabase();
-    
     console.log('✅ Seeding completed successfully!');
     process.exit(0);
   } catch (error) {
