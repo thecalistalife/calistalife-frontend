@@ -22,3 +22,22 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment files
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Additional tooling/build outputs
+.vercel/
+.netlify/
+.next/
+coverage/
+.vscode/
+.idea/
+
+# Monorepo node_modules and dist
+**/node_modules/
+**/dist/
+**/build/
