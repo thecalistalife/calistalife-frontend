@@ -1,6 +1,6 @@
 import express, { Router } from 'express';
 import { body } from 'express-validator';
-import { createPaymentIntent, handleStripeWebhook, createRazorpayOrder, handleRazorpayWebhook } from '../controllers/payments';
+import { createPaymentIntent, handleStripeWebhook, createRazorpayOrder, handleRazorpayWebhook, getRazorpayKey } from '../controllers/payments';
 import { handleValidationErrors, optionalAuth } from '../middleware';
 
 const router = Router();
@@ -10,6 +10,9 @@ router.post('/webhook', express.raw({ type: 'application/json' }), handleStripeW
 
 // Razorpay webhook (no auth required) - requires raw body for signature verification
 router.post('/razorpay/webhook', express.raw({ type: 'application/json' }), handleRazorpayWebhook);
+
+// Razorpay public config (key id)
+router.get('/razorpay/key', (req, res, next) => getRazorpayKey(req, res, next));
 
 // Create payment intent (optional auth - can be used by guests or authenticated users)
 const createIntentValidation = [

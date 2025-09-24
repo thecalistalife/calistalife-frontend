@@ -18,6 +18,15 @@ const razorpayKeyId = process.env.RAZORPAY_KEY_ID;
 const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET;
 const razorpay = razorpayKeyId && razorpayKeySecret ? new Razorpay({ key_id: razorpayKeyId, key_secret: razorpayKeySecret }) : null;
 
+export const getRazorpayKey = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const keyId = process.env.RAZORPAY_KEY_ID || null;
+    res.status(200).json({ success: true, data: { keyId } });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const createPaymentIntent = async (req: Request, res: Response, next: NextFunction) => {
   try {
     if (!stripe) {

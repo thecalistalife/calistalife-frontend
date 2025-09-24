@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCartStore } from '../store';
-import { OrdersAPI } from '../lib/api';
+import { OrdersAPI, PaymentsAPI } from '../lib/api';
 import { useToast } from '../hooks/useToast';
 import { formatPrice } from '../utils';
 import { useNavigate } from 'react-router-dom';
@@ -12,22 +12,27 @@ const Step = ({ children }: { children: React.ReactNode }) => (
   </motion.div>
 );
 
-const PaymentSectionCOD = () => {
-  return (
-    <div className="rounded-lg border p-4 bg-gray-50">
-      <h3 className="font-semibold mb-2">Cash on Delivery (COD)</h3>
-      <p className="text-sm text-gray-700">
-        You will pay in cash when your order is delivered. No online payment is required right now.
-      </p>
-    </div>
-  );
-};
+const PaymentSectionCOD = () => (
+  <div className="rounded-lg border p-4 bg-gray-50">
+    <h3 className="font-semibold mb-2">Cash on Delivery (COD)</h3>
+    <p className="text-sm text-gray-700">You will pay in cash when your order is delivered.</p>
+  </div>
+);
+
+const PaymentSectionRazorpay = () => (
+  <div className="rounded-lg border p-4 bg-gray-50">
+    <h3 className="font-semibold mb-2">Online Payment (Razorpay)</h3>
+    <p className="text-sm text-gray-700">Pay securely via UPI, Cards, Wallets, or NetBanking.</p>
+  </div>
+);
 
 export const Checkout = () => {
   const items = useCartStore((s) => s.items);
   const clearCart = useCartStore((s) => s.clearCart);
   const subtotal = items.reduce((sum, it) => sum + it.product.price * it.quantity, 0);
   const [step, setStep] = useState<'shipping' | 'payment' | 'review'>('shipping');
+  const [paymentMethod, setPaymentMethod] = useState<'razorpay' | 'cod'>('razorpay');
+  const [placing, setPlacing] = useState(false);
   const toast = useToast();
   const navigate = useNavigate();
   // simple local shipping form state (MVP)
@@ -55,26 +60,10 @@ export const Checkout = () => {
     return true;
   };
 
-  const placeOrder = async () => {
+  const placeOrderCOD = async () => {
     try {
-      const orderPayload = {
-        items: items.map((it) => ({
-          productId: it.product.id,
-          name: it.product.name,
-          image: it.product.images?.[0],
-          size: it.size,
-          color: it.color,
-          quantity: it.quantity,
-          price: it.product.price,
-        })),
-        shippingAddress: { firstName, lastName, address1, city, zip, email },
-        billingAddress: { firstName, lastName, address1, city, zip, email },
-        subtotal: Math.round(subtotal),
-        shippingCost: 0,
-        tax: 0,
-        totalAmount: Math.round(subtotal),
-        payment: { method: 'cod', status: 'pending' },
-      };
+      setPlacing(true);
+      const orderPayload = buildOrderPayload('cod');
       const res = await OrdersAPI.create(orderPayload);
       const data = res.data.data as any;
       clearCart();
@@ -82,6 +71,89 @@ export const Checkout = () => {
       navigate('/order-success', { state: { orderNumber: data.orderNumber } });
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Failed to place order');
+    } finally {
+      setPlacing(false);
+    }
+  };
+
+  const buildOrderPayload = (method: 'cod' | 'razorpay') => ({
+    items: items.map((it) => ({
+      productId: it.product.id,
+      name: it.product.name,
+      image: it.product.images?.[0],
+      size: it.size,
+      color: it.color,
+      quantity: it.quantity,
+      price: it.product.price,
+    })),
+    shippingAddress: { firstName, lastName, address1, city, zip, email },
+    billingAddress: { firstName, lastName, address1, city, zip, email },
+    subtotal: Math.round(subtotal),
+    shippingCost: 0,
+    tax: 0,
+    totalAmount: Math.round(subtotal),
+    payment: { method, status: method === 'cod' ? 'pending' : 'pending' },
+  });
+
+  async function loadScript(src: string) {
+    return new Promise<boolean>((resolve) => {
+      const s = document.createElement('script');
+      s.src = src; s.async = true;
+      s.onload = () => resolve(true);
+      s.onerror = () => resolve(false);
+      document.body.appendChild(s);
+    });
+  }
+
+  const placeOrderRazorpay = async () => {
+    if (!validateShipping()) return;
+    try {
+      setPlacing(true);
+      // 1) Create order in our DB (pending)
+      const orderPayload = buildOrderPayload('razorpay');
+      const res = await OrdersAPI.create(orderPayload);
+      const data = res.data.data as any;
+      const orderNumber = data.orderNumber as string;
+
+      // 2) Get Razorpay key
+      const keyRes = await PaymentsAPI.getRazorpayKey();
+      const keyId = keyRes.data.data?.keyId || (import.meta as any).env?.VITE_RAZORPAY_KEY_ID;
+      if (!keyId) { throw new Error('Razorpay key is not configured'); }
+
+      // 3) Create Razorpay order with receipt=orderNumber
+      const amountPaise = Math.round(subtotal * 100);
+      const orderRes = await PaymentsAPI.createRazorpayOrder(amountPaise, orderNumber);
+      const rzpOrder = orderRes.data.data as any;
+
+      // 4) Load Razorpay script
+      const ok = await loadScript('https://checkout.razorpay.com/v1/checkout.js');
+      if (!ok || !(window as any).Razorpay) throw new Error('Failed to load Razorpay');
+
+      // 5) Open checkout
+      const options: any = {
+        key: keyId,
+        amount: rzpOrder.amount,
+        currency: rzpOrder.currency,
+        name: 'CALISTA',
+        description: 'Order Payment',
+        order_id: rzpOrder.orderId,
+        handler: (resp: any) => {
+          clearCart();
+          toast.success(`Payment successful. Order: ${orderNumber}`);
+          navigate('/order-success', { state: { orderNumber } });
+        },
+        theme: { color: '#ef4444' },
+        prefill: { name: `${firstName} ${lastName}`, email }
+      };
+      const rzp = new (window as any).Razorpay(options);
+      rzp.on('payment.failed', (resp: any) => {
+        toast.error(resp?.error?.description || 'Payment failed');
+      });
+      rzp.open();
+    } catch (e: any) {
+      toast.error(e?.message || 'Failed to start payment');
+    } finally {
+      setPlacing(false);
     }
   };
 
@@ -123,7 +195,23 @@ export const Checkout = () => {
 {step === 'payment' && (
                   <Step>
                     <h2 className="text-xl font-bold mb-4">Payment</h2>
-                    <PaymentSectionCOD />
+                    <div className="space-y-4">
+                      <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer">
+                        <input type="radio" name="pay" checked={paymentMethod==='razorpay'} onChange={()=>setPaymentMethod('razorpay')} />
+                        <div>
+                          <div className="font-semibold">Online (Razorpay)</div>
+                          <div className="text-sm text-gray-600">UPI, Cards, Wallets, NetBanking</div>
+                        </div>
+                      </label>
+                      <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer">
+                        <input type="radio" name="pay" checked={paymentMethod==='cod'} onChange={()=>setPaymentMethod('cod')} />
+                        <div>
+                          <div className="font-semibold">Cash on Delivery (COD)</div>
+                          <div className="text-sm text-gray-600">Pay in cash upon delivery</div>
+                        </div>
+                      </label>
+                      {paymentMethod==='razorpay' ? <PaymentSectionRazorpay /> : <PaymentSectionCOD />}
+                    </div>
                     <div className="mt-6 flex justify-between">
                       <button onClick={() => setStep('shipping')} className="px-6 py-3 border-2 border-black rounded-lg font-bold uppercase tracking-wider hover:bg-black hover:text-white transition-all">
                         Back
@@ -150,8 +238,8 @@ export const Checkout = () => {
                       <button onClick={() => setStep('payment')} className="px-6 py-3 border-2 border-black rounded-lg font-bold uppercase tracking-wider hover:bg-black hover:text-white transition-all">
                         Back
                       </button>
-                      <button onClick={placeOrder} className="px-6 py-3 bg-black text-white rounded-lg font-bold uppercase tracking-wider hover:bg-orange-500 transition-colors">
-                        Place order
+                      <button disabled={placing} onClick={paymentMethod==='cod' ? placeOrderCOD : placeOrderRazorpay} className="px-6 py-3 bg-black text-white rounded-lg font-bold uppercase tracking-wider hover:bg-orange-500 transition-colors disabled:opacity-50">
+                        {placing ? 'Processing…' : (paymentMethod==='cod' ? 'Place order' : 'Pay now')}
                       </button>
                     </div>
                   </Step>
