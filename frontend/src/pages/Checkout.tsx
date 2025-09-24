@@ -30,6 +30,9 @@ export const Checkout = () => {
   const items = useCartStore((s) => s.items);
   const clearCart = useCartStore((s) => s.clearCart);
   const subtotal = items.reduce((sum, it) => sum + it.product.price * it.quantity, 0);
+  const shippingCost = subtotal >= 999 ? 0 : 99; // simple rule: free over 999 INR
+  const tax = 0; // placeholder; integrate GST later
+  const total = subtotal + shippingCost + tax;
   const [step, setStep] = useState<'shipping' | 'payment' | 'review'>('shipping');
   const [paymentMethod, setPaymentMethod] = useState<'razorpay' | 'cod'>('razorpay');
   const [placing, setPlacing] = useState(false);
@@ -89,9 +92,9 @@ export const Checkout = () => {
     shippingAddress: { firstName, lastName, address1, city, zip, email },
     billingAddress: { firstName, lastName, address1, city, zip, email },
     subtotal: Math.round(subtotal),
-    shippingCost: 0,
-    tax: 0,
-    totalAmount: Math.round(subtotal),
+    shippingCost: Math.round(shippingCost),
+    tax: Math.round(tax),
+    totalAmount: Math.round(total),
     payment: { method, status: method === 'cod' ? 'pending' : 'pending' },
   });
 
@@ -121,7 +124,7 @@ export const Checkout = () => {
       if (!keyId) { throw new Error('Razorpay key is not configured'); }
 
       // 3) Create Razorpay order with receipt=orderNumber
-      const amountPaise = Math.round(subtotal * 100);
+      const amountPaise = Math.round(total * 100);
       const orderRes = await PaymentsAPI.createRazorpayOrder(amountPaise, orderNumber);
       const rzpOrder = orderRes.data.data as any;
 
@@ -258,9 +261,25 @@ export const Checkout = () => {
                 </div>
               ))}
             </div>
-            <div className="mt-4 flex justify-between text-lg font-bold">
-              <span>Subtotal</span>
-              <span>{formatPrice(subtotal)}</span>
+            <div className="mt-4 space-y-1 text-sm">
+              <div className="flex justify-between">
+                <span>Subtotal</span>
+                <span>{formatPrice(subtotal)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Shipping</span>
+                <span>{shippingCost === 0 ? 'Free' : formatPrice(shippingCost)}</span>
+              </div>
+              {tax > 0 && (
+                <div className="flex justify-between">
+                  <span>Tax</span>
+                  <span>{formatPrice(tax)}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-lg font-bold pt-2 border-t mt-2">
+                <span>Total</span>
+                <span>{formatPrice(total)}</span>
+              </div>
             </div>
           </div>
         </div>
