@@ -27,8 +27,11 @@ import {
   Contact,
   NotFound,
 } from './pages';
+import AdminLogin from './admin/AdminLogin';
+import AdminDashboard from './admin/AdminDashboard';
 
 const queryClient = new QueryClient();
+const ADMIN_BASE = (import.meta as any).env?.VITE_ADMIN_BASE_PATH || 'cl-private-dashboard-2024';
 
 function App() {
   return (
@@ -56,6 +59,9 @@ function App() {
                 <Route path="/order-success" element={<ProtectedRoute><OrderSuccess /></ProtectedRoute>} />
                 <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
                 <Route path="/orders/:id" element={<ProtectedRoute><OrderDetails /></ProtectedRoute>} />
+                <Route path={`/${ADMIN_BASE}`} element={<NotFound />} />
+                <Route path={`/${ADMIN_BASE}/enter`} element={<AdminLogin base={ADMIN_BASE} />} />
+                <Route path={`/${ADMIN_BASE}/dashboard`} element={<AdminDashboard base={ADMIN_BASE} />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/login" element={<Login />} />

@@ -21,6 +21,7 @@ import productRoutes from './routes/products';
 import paymentsRoutes from './routes/payments';
 import cartRoutes from './routes/cart';
 import orderRoutes from './routes/orders';
+import adminRoutes from './routes/admin';
 
 // Import webhook handlers before JSON parser to capture raw body
 import { handleStripeWebhook, handleRazorpayWebhook } from './controllers/payments';
@@ -76,6 +77,10 @@ app.use('/api/products', productRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
+
+// Secret Admin routes (mounted under hidden base path)
+const ADMIN_BASE = `/${(process.env.ADMIN_BASE_PATH || 'cl-private-dashboard-2024').replace(/^\/+|\/+$/g,'')}`;
+app.use(ADMIN_BASE, adminRoutes);
 
 // Handle 404
 app.use(notFound);

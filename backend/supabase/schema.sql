@@ -186,3 +186,45 @@ create table if not exists public.order_items (
 alter table public.users enable row level security;
 create policy if not exists "users_self_select" on public.users for select using (auth.role() = 'anon' or true);
 -- For backend service role, we bypass RLS using service key.
+
+-- =====================
+-- Admin schema
+-- =====================
+create table if not exists public.admin_users (
+  id uuid primary key default gen_random_uuid(),
+  email text unique not null,
+  password_hash text not null,
+  role text not null default 'viewer', -- master, product_manager, order_manager, support, marketing, viewer
+  two_factor_enabled boolean not null default false,
+  two_factor_secret text,
+  is_active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.admin_sessions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.admin_users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  last_activity timestamptz not null default now(),
+  ip text,
+  user_agent text
+);
+
+create table if not exists public.admin_login_attempts (
+  id uuid primary key default gen_random_uuid(),
+  email text,
+  ip text,
+  success boolean not null,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.admin_activity_log (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references public.admin_users(id) on delete set null,
+  action text not null,
+  path text,
+  ip text,
+  user_agent text,
+  created_at timestamptz not null default now()
+);
