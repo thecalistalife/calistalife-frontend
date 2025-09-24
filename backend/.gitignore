@@ -1,0 +1,10 @@
+# Node and build
+node_modules/
+dist/
+
+# Local env files
+.env
+.env.local
+
+# Uploads (optional keep local only)
+uploads/
