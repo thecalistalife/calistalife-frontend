@@ -6,6 +6,8 @@ export { Collections } from './Collections';
 export { Product } from './Product';
 export { Cart } from './Cart';
 export { Checkout } from './Checkout';
+export { default as Orders } from './Orders';
+export { default as OrderDetails } from './OrderDetails';
 
 // Simple placeholder pages
 export const Category = () => <CollectionsPage />;
@@ -21,17 +23,42 @@ import { useLocation } from 'react-router-dom';
 export const OrderSuccess = () => {
   const location = useLocation() as any;
   const orderNumber = location?.state?.orderNumber as string | undefined;
+  const [status, setStatus] = useState<string>('pending');
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let timer: any;
+    const poll = async () => {
+      try {
+        if (!orderNumber) return;
+        const res = await (await import('../lib/api')).then(m => m.OrdersAPI.getByNumber(orderNumber));
+        const data: any = res.data.data;
+        setStatus(data?.payment_status || 'pending');
+      } catch (e: any) {
+        setError(e?.response?.data?.message || null);
+      } finally {
+        timer = setTimeout(poll, 3000);
+      }
+    };
+    if (orderNumber) poll();
+    return () => { if (timer) clearTimeout(timer); };
+  }, [orderNumber]);
+
   return (
     <div className="pt-16 lg:pt-20 min-h-screen flex items-center justify-center">
       <div className="text-center">
         <h1 className="text-3xl font-bold mb-4 text-green-600">Order Successful!</h1>
         {orderNumber ? (
-          <p className="mb-8">Your order number is <span className="font-semibold">{orderNumber}</span>.</p>
+          <>
+            <p className="mb-2">Your order number is <span className="font-semibold">{orderNumber}</span>.</p>
+            <p className="mb-8 text-sm">Payment status: <span className="capitalize font-medium">{status}</span></p>
+          </>
         ) : (
           <p className="mb-8">Thank you for your purchase.</p>
         )}
-        <Link to="/" className="px-8 py-4 bg-black text-white font-bold uppercase tracking-wider hover:bg-red-500 transition-colors">
-          Continue Shopping
+        {error && <div className="mb-4 text-red-600 text-sm">{error}</div>}
+        <Link to="/orders" className="px-8 py-4 bg-black text-white font-bold uppercase tracking-wider hover:bg-red-500 transition-colors">
+          View My Orders
         </Link>
       </div>
     </div>

@@ -5,11 +5,7 @@ import { handleValidationErrors, optionalAuth } from '../middleware';
 
 const router = Router();
 
-// Stripe webhook (no auth required) - requires raw body for signature verification
-router.post('/webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);
-
-// Razorpay webhook (no auth required) - requires raw body for signature verification
-router.post('/razorpay/webhook', express.raw({ type: 'application/json' }), handleRazorpayWebhook);
+// Webhooks are mounted at app level before JSON parser to preserve raw body
 
 // Razorpay public config (key id)
 router.get('/razorpay/key', (req, res, next) => getRazorpayKey(req, res, next));

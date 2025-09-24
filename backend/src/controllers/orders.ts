@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { supabaseAdmin } from '@/utils/supabase';
+import { sendMail } from '@/utils/email';
 
 export const createOrder = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -70,8 +71,68 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
 
     if (itemsErr) throw itemsErr;
 
+    try {
+      const toEmail = (shippingAddress?.email || (user?.email)) as string | undefined;
+      if (toEmail) {
+        await sendMail({
+          to: toEmail,
+          subject: `Order received: ${orderNumber}`,
+          html: `<p>Thanks for your order.</p><p>Your order number is <b>${orderNumber}</b>.</p><p>Total: <b>${totalAmount}</b></p>`
+        });
+      }
+    } catch (e) {
+      console.log('Email notify failed:', (e as any)?.message);
+    }
+
     res.status(200).json({ success: true, message: 'Order created', data: { id: orderRow!.id, orderNumber } });
   } catch (err) {
     next(err);
   }
+};
+
+export const getMyOrders = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const user = (req as any).user;
+    if (!user) { res.status(401).json({ success: false, message: 'Unauthorized' }); return; }
+    const userId = user._id || user.id;
+    const { data, error } = await supabaseAdmin
+      .from('orders')
+      .select('*, order_items(*)')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    res.status(200).json({ success: true, data });
+  } catch (err) { next(err); }
+};
+
+export const getOrderById = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const user = (req as any).user;
+    if (!user) { res.status(401).json({ success: false, message: 'Unauthorized' }); return; }
+    const userId = user._id || user.id;
+    const { id } = req.params as any;
+    const { data, error } = await supabaseAdmin
+      .from('orders')
+      .select('*, order_items(*)')
+      .eq('id', id)
+      .single();
+    if (error) throw error;
+    if (!data) { res.status(404).json({ success: false, message: 'Order not found' }); return; }
+    if (data.user_id !== userId && (user.role !== 'admin')) { res.status(403).json({ success: false, message: 'Forbidden' }); return; }
+    res.status(200).json({ success: true, data });
+  } catch (err) { next(err); }
+};
+
+export const getOrderByNumber = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { orderNumber } = req.params as any;
+    const { data, error } = await supabaseAdmin
+      .from('orders')
+      .select('*')
+      .eq('order_number', orderNumber)
+      .single();
+    if (error) throw error;
+    if (!data) { res.status(404).json({ success: false, message: 'Order not found' }); return; }
+    res.status(200).json({ success: true, data });
+  } catch (err) { next(err); }
 };

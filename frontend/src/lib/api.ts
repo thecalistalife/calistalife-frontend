@@ -120,6 +120,9 @@ export const PaymentsAPI = {
 
 export const OrdersAPI = {
   create: (payload: any) => api.post<ApiResponse<{ id: string; orderNumber: string }>>('/api/orders/create', payload),
+  my: () => api.get<ApiResponse<any[]>>('/api/orders/my'),
+  get: (id: string) => api.get<ApiResponse<any>>(`/api/orders/${encodeURIComponent(id)}`),
+  getByNumber: (orderNumber: string) => api.get<ApiResponse<any>>(`/api/orders/by-number/${encodeURIComponent(orderNumber)}`),
 };
 
 // Product APIs

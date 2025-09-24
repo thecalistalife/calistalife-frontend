@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import path from 'path';
+import express from 'express';
 
 // Import middleware
 import {
@@ -20,6 +21,9 @@ import productRoutes from './routes/products';
 import paymentsRoutes from './routes/payments';
 import cartRoutes from './routes/cart';
 import orderRoutes from './routes/orders';
+
+// Import webhook handlers before JSON parser to capture raw body
+import { handleStripeWebhook, handleRazorpayWebhook } from './controllers/payments';
 
 // Load environment variables
 dotenv.config();
@@ -40,6 +44,10 @@ app.use(cors(corsOptions));
 
 // Rate limiting
 app.use(generalRateLimit);
+
+// Mount webhook routes with raw body BEFORE JSON parser
+app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);
+app.post('/api/payments/razorpay/webhook', express.raw({ type: 'application/json' }), handleRazorpayWebhook);
 
 // Body parsing middleware (JSON for most routes)
 app.use(express.json({ limit: '10mb' }));

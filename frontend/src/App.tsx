@@ -21,6 +21,8 @@ import {
   Search,
   Checkout,
   OrderSuccess,
+  Orders,
+  OrderDetails,
   About,
   Contact,
   NotFound,
@@ -52,6 +54,8 @@ function App() {
                 <Route path="/search" element={<Search />} />
                 <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
                 <Route path="/order-success" element={<ProtectedRoute><OrderSuccess /></ProtectedRoute>} />
+                <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
+                <Route path="/orders/:id" element={<ProtectedRoute><OrderDetails /></ProtectedRoute>} />
                 <Route path="/about" element={<About />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/login" element={<Login />} />

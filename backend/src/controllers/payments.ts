@@ -116,10 +116,31 @@ export const handleRazorpayWebhook = async (req: Request, res: Response, next: N
       // Update order record by order_number
       const updates: any = { payment_status: 'paid', razorpay_order_id: orderEntity.id };
       if (paymentEntity?.id) updates.razorpay_payment_id = paymentEntity.id;
-      await (await import('@/utils/supabase')).supabaseAdmin
+      const { supabaseAdmin } = await import('@/utils/supabase');
+      await supabaseAdmin
         .from('orders')
         .update(updates)
         .eq('order_number', orderNumber);
+
+      // Send payment confirmation email if we can infer recipient (lookup order + shipping email)
+      try {
+        const { data: orderRow } = await supabaseAdmin
+          .from('orders')
+          .select('*')
+          .eq('order_number', orderNumber)
+          .single();
+        const toEmail = (orderRow as any)?.shipping_address?.email as string | undefined;
+        if (toEmail) {
+          const { sendMail } = await import('@/utils/email');
+          await sendMail({
+            to: toEmail,
+            subject: `Payment confirmed: ${orderNumber}`,
+            html: `<p>Your payment has been received.</p><p>Order <b>${orderNumber}</b> is now confirmed.</p>`
+          });
+        }
+      } catch (e) {
+        console.log('Payment email notify failed:', (e as any)?.message);
+      }
     }
 
     res.status(200).json({ success: true, message: 'Webhook processed' });
