@@ -95,7 +95,7 @@ export const Navigation = () => {
               </button>
               
               <Link 
-                to="/account"
+to="/profile"
                 className="text-gray-800 hover:text-orange-500 transition-colors"
                 aria-label="Account"
               >
@@ -173,7 +173,7 @@ export const Navigation = () => {
                   </button>
                   
                   <Link 
-                    to="/account"
+to="/profile"
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="text-gray-800 hover:text-orange-500 transition-colors"
                     aria-label="Account"

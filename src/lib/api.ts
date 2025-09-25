@@ -113,12 +113,16 @@ export const AuthAPI = {
 export const PaymentsAPI = {
   createPaymentIntent: (payload: { amount: number; currency?: string; metadata?: Record<string, string> }) =>
     api.post<ApiResponse<{ clientSecret: string; paymentIntentId: string }>>('/api/payments/intent', payload),
-  createRazorpayOrder: (amountPaise: number) =>
-    api.post<ApiResponse<{ orderId: string; amount: number; currency: string }>>('/api/payments/razorpay/order', { amount: amountPaise }),
+  createRazorpayOrder: (amountPaise: number, orderNumber?: string, notes?: Record<string, string>) =>
+    api.post<ApiResponse<{ orderId: string; amount: number; currency: string; receipt?: string }>>('/api/payments/razorpay/order', { amount: amountPaise, orderNumber, notes }),
+  getRazorpayKey: () => api.get<ApiResponse<{ keyId: string | null }>>('/api/payments/razorpay/key'),
 };
 
 export const OrdersAPI = {
   create: (payload: any) => api.post<ApiResponse<{ id: string; orderNumber: string }>>('/api/orders/create', payload),
+  my: () => api.get<ApiResponse<any[]>>('/api/orders/my'),
+  get: (id: string) => api.get<ApiResponse<any>>(`/api/orders/${encodeURIComponent(id)}`),
+  getByNumber: (orderNumber: string) => api.get<ApiResponse<any>>(`/api/orders/by-number/${encodeURIComponent(orderNumber)}`),
 };
 
 // Product APIs
