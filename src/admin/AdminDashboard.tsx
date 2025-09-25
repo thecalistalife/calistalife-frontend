@@ -31,6 +31,14 @@ export default function AdminDashboard({ base }: { base: string }) {
             <div className="font-semibold">Products</div>
             <div className="text-sm text-gray-600">Manage products</div>
           </a>
+          <a href={`/${base}/categories`} className="border rounded-lg p-6 hover:bg-gray-50">
+            <div className="font-semibold">Categories</div>
+            <div className="text-sm text-gray-600">Organize catalog</div>
+          </a>
+          <a href={`/${base}/collections`} className="border rounded-lg p-6 hover:bg-gray-50">
+            <div className="font-semibold">Collections</div>
+            <div className="text-sm text-gray-600">Seasonal and featured</div>
+          </a>
           <a href={`/orders`} className="border rounded-lg p-6 hover:bg-gray-50">
             <div className="font-semibold">Orders</div>
             <div className="text-sm text-gray-600">View orders</div>

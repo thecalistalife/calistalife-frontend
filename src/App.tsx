@@ -31,6 +31,9 @@ import AdminLogin from './admin/AdminLogin';
 import AdminDashboard from './admin/AdminDashboard';
 import AdminProducts from './admin/products/ProductsList';
 import AdminProductEdit from './admin/products/ProductEdit';
+import CategoriesPage from './admin/categories/CategoriesPage';
+import CollectionsPage from './admin/collections/CollectionsPage';
+import CollectionEditPage from './admin/collections/CollectionEditPage';
 
 const queryClient = new QueryClient();
 const ADMIN_BASE = (import.meta as any).env?.VITE_ADMIN_BASE_PATH || 'cl-private-dashboard-2024';
@@ -67,6 +70,9 @@ function App() {
                 <Route path={`/${ADMIN_BASE}/products`} element={<AdminProducts />} />
                 <Route path={`/${ADMIN_BASE}/products/new`} element={<AdminProductEdit />} />
                 <Route path={`/${ADMIN_BASE}/products/:id`} element={<AdminProductEdit />} />
+                <Route path={`/${ADMIN_BASE}/categories`} element={<CategoriesPage />} />
+                <Route path={`/${ADMIN_BASE}/collections`} element={<CollectionsPage />} />
+                <Route path={`/${ADMIN_BASE}/collections/:id`} element={<CollectionEditPage />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/login" element={<Login />} />

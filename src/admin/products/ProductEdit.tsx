@@ -7,6 +7,65 @@ import VariantMatrix from '../variants/VariantMatrix'
 const BASE = (import.meta as any).env?.VITE_ADMIN_BASE_PATH || 'cl-private-dashboard-2024'
 const API = (path: string, init?: RequestInit) => fetch(`${import.meta.env.VITE_API_URL}/${BASE}${path}`, { credentials: 'include', ...(init||{}) })
 
+function Organization({ productId }: { productId: string }) {
+  const BASE = (import.meta as any).env?.VITE_ADMIN_BASE_PATH || 'cl-private-dashboard-2024'
+  const [cats, setCats] = useState<any[]>([])
+  const [cols, setCols] = useState<any[]>([])
+  const [selectedCats, setSelectedCats] = useState<string[]>([])
+  const [selectedCols, setSelectedCols] = useState<string[]>([])
+
+  useEffect(()=>{
+    const run = async () => {
+      const cr = await fetch(`${import.meta.env.VITE_API_URL}/${BASE}/categories`, { credentials: 'include' })
+      const cj = await cr.json();
+      const flat = (function listify(nodes:any[], acc:any[]=[], depth=0): any[]{ for(const n of (nodes||[])){ acc.push({id:n.id,name:n.name,depth}); if(n.children?.length) listify(n.children,acc,depth+1);} return acc })(cj.data||[])
+      setCats(flat)
+      const lr = await fetch(`${import.meta.env.VITE_API_URL}/${BASE}/collections`, { credentials: 'include' })
+      const lj = await lr.json(); setCols(lj.data||[])
+    }
+    run()
+  },[])
+
+  const save = async () => {
+    await fetch(`${import.meta.env.VITE_API_URL}/${BASE}/categories/assign`, { method:'POST', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ productId, categoryIds: selectedCats }) })
+    await fetch(`${import.meta.env.VITE_API_URL}/${BASE}/collections/assign`, { method:'POST', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ productId, collectionIds: selectedCols }) })
+    alert('Organization saved')
+  }
+
+  return (
+    <div className="mt-8">
+      <h2 className="text-xl font-bold mb-3">Organization</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <div className="font-semibold mb-2">Categories</div>
+          <div className="border rounded max-h-64 overflow-auto">
+            {cats.map(c=> (
+              <label key={c.id} className="flex items-center gap-2 px-3 py-2 border-b text-sm">
+                <input type="checkbox" checked={selectedCats.includes(c.id)} onChange={e=> setSelectedCats(p=> e.target.checked ? [...p,c.id] : p.filter(x=>x!==c.id))} />
+                <span style={{ paddingLeft: c.depth*12 }}>{c.name}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+        <div>
+          <div className="font-semibold mb-2">Collections</div>
+          <div className="border rounded max-h-64 overflow-auto">
+            {cols.map((c:any)=> (
+              <label key={c.id} className="flex items-center gap-2 px-3 py-2 border-b text-sm">
+                <input type="checkbox" checked={selectedCols.includes(c.id)} onChange={e=> setSelectedCols(p=> e.target.checked ? [...p,c.id] : p.filter(x=>x!==c.id))} />
+                <span>{c.name}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="mt-3">
+        <button className="px-4 py-2 border rounded" onClick={save}>Save Organization</button>
+      </div>
+    </div>
+  )
+}
+
 export default function ProductEdit() {
   useNoIndex('Store Management')
   const nav = useNavigate()
@@ -102,6 +161,11 @@ export default function ProductEdit() {
                 ))}
               </div>
             </div>
+          )}
+
+          {/* Organization */}
+          {!isNew && (
+            <Organization productId={id!} />
           )}
 
           {/* Variants */}
