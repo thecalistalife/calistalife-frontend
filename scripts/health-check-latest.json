@@ -1,25 +1,25 @@
 {
-  "timestamp": "2025-09-29T16:12:11.985Z",
+  "timestamp": "2025-09-29T17:01:55.172Z",
   "frontend": {
     "url": "https://calistalife.com",
     "status": "healthy",
     "responseCode": 200,
-    "responseTime": 160,
-    "timestamp": "2025-09-29T16:12:12.146Z"
+    "responseTime": 140,
+    "timestamp": "2025-09-29T17:01:55.314Z"
   },
   "backend": {
     "url": "https://api.calistalife.com",
     "status": "error",
     "error": "getaddrinfo ENOTFOUND api.calistalife.com",
-    "responseTime": 14,
-    "timestamp": "2025-09-29T16:12:12.162Z"
+    "responseTime": 411,
+    "timestamp": "2025-09-29T17:01:55.725Z"
   },
   "api_health": {
     "url": "https://api.calistalife.com/health",
     "status": "error",
     "error": "getaddrinfo ENOTFOUND api.calistalife.com",
-    "responseTime": 9,
-    "timestamp": "2025-09-29T16:12:12.172Z"
+    "responseTime": 5,
+    "timestamp": "2025-09-29T17:01:55.730Z"
   },
   "ssl": [
     {
