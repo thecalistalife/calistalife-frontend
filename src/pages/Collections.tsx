@@ -7,6 +7,7 @@ import { useSearchStore } from '../store/index';
 import { cn } from '../utils/index';
 import type { SortOption } from '../types/index';
 import { ProductsAPI, type ProductQuery } from '../lib/api';
+import { RecentlyViewedProducts } from '../components/recommendations/ProductRecommendations';
 
 export const Collections = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -333,6 +334,13 @@ export const Collections = () => {
           </div>
         </div>
       )}
+
+      {/* Recently Viewed Products */}
+      <section className="py-8 bg-gray-50">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <RecentlyViewedProducts />
+        </div>
+      </section>
 
       {/* Products Grid */}
       <section className="py-20">

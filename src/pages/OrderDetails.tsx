@@ -55,6 +55,27 @@ export default function OrderDetails() {
             </div>
 
             <div className="border rounded-lg p-6">
+              <h2 className="text-xl font-bold mb-4">Tracking</h2>
+              <div className="text-sm grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <div className="font-semibold">Courier</div>
+                  <div>{order.courier || '-'}</div>
+                </div>
+                <div>
+                  <div className="font-semibold">Tracking #</div>
+                  <div>{order.tracking_number || '-'}</div>
+                </div>
+                <div>
+                  <div className="font-semibold">Track</div>
+                  {order.track_url ? <a href={order.track_url} target="_blank" className="text-blue-600 underline">Track package</a> : <span>-</span>}
+                </div>
+              </div>
+              {order.estimated_delivery && (
+                <div className="mt-3 text-sm text-gray-700">Estimated delivery: <b>{new Date(order.estimated_delivery).toLocaleDateString()}</b></div>
+              )}
+            </div>
+
+            <div className="border rounded-lg p-6">
               <h2 className="text-xl font-bold mb-4">Items</h2>
               <div className="divide-y">
                 {(order.order_items || []).map((it: any) => (

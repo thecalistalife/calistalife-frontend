@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
 import { Plus, Minus, Heart, Truck, Shield, RotateCcw } from 'lucide-react';
@@ -7,6 +7,8 @@ import { formatPrice, cn } from '../utils/index';
 import { ProductGallery } from '../components/ProductGallery';
 import { MagneticButton } from '../components/MagneticButton';
 import { ProductsAPI } from '../lib/api';
+import EnhancedProductReviews from '../components/reviews/EnhancedProductReviews';
+import { ProductRecommendations, useRecentlyViewed } from '../components/recommendations/ProductRecommendations';
 
 export const Product = () => {
   const { id } = useParams();
@@ -32,6 +34,14 @@ export const Product = () => {
   const product = data ? { ...data, id: data.id || data._id || data.slug } : null;
   const addToCart = useCartStore(state => state.addItem);
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlistStore();
+  const { addToRecentlyViewed } = useRecentlyViewed();
+
+  // Add to recently viewed when product loads
+  useEffect(() => {
+    if (product) {
+      addToRecentlyViewed(product);
+    }
+  }, [product, addToRecentlyViewed]);
   
   if (isLoading) {
     return (
@@ -83,6 +93,94 @@ export const Product = () => {
             </div>
 
             <p className="text-gray-700 mb-6">{product.description}</p>
+
+            {/* Quality Information */}
+            {(product.quality_grade || product.sustainability_rating || product.fabric_composition) && (
+              <div className="mb-6 p-4 border rounded-lg bg-gray-50">
+                <h3 className="font-semibold mb-3 text-lg">Quality Information</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {product.quality_grade && (
+                    <div className="text-center p-3 bg-white rounded border">
+                      <div className="text-sm text-gray-600">Quality Grade</div>
+                      <div className="font-semibold text-lg capitalize">{product.quality_grade}</div>
+                    </div>
+                  )}
+                  {product.sustainability_rating && (
+                    <div className="text-center p-3 bg-white rounded border">
+                      <div className="text-sm text-gray-600">Sustainability</div>
+                      <div className="font-semibold text-lg">{product.sustainability_rating}</div>
+                    </div>
+                  )}
+                  {product.durability_score && (
+                    <div className="text-center p-3 bg-white rounded border">
+                      <div className="text-sm text-gray-600">Durability</div>
+                      <div className="font-semibold text-lg">{product.durability_score}/10</div>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Fabric Information */}
+                {(product.fabric_composition || product.thread_count || product.fabric_weight) && (
+                  <div className="mt-4">
+                    <h4 className="font-medium mb-2">Fabric Details</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      {product.fabric_composition && Object.keys(product.fabric_composition).length > 0 && (
+                        <div>
+                          <span className="font-medium">Composition:</span>
+                          {Object.entries(product.fabric_composition).map(([material, percentage], idx) => (
+                            <span key={idx} className="ml-2">
+                              {percentage}% {material}
+                              {idx < Object.entries(product.fabric_composition).length - 1 ? ',' : ''}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {product.thread_count && (
+                        <div><span className="font-medium">Thread Count:</span> {product.thread_count}</div>
+                      )}
+                      {product.fabric_weight && (
+                        <div><span className="font-medium">Weight:</span> {product.fabric_weight} oz/yd²</div>
+                      )}
+                      {product.stretch_level && (
+                        <div><span className="font-medium">Stretch:</span> {product.stretch_level.replace('_', ' ')}</div>
+                      )}
+                      {product.breathability_rating && (
+                        <div><span className="font-medium">Breathability:</span> {product.breathability_rating}/5</div>
+                      )}
+                      {product.fit_type && (
+                        <div><span className="font-medium">Fit:</span> {product.fit_type} fit</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Care Instructions */}
+                {product.care_instructions && product.care_instructions.length > 0 && (
+                  <div className="mt-4">
+                    <h4 className="font-medium mb-2">Care Instructions</h4>
+                    <ul className="text-sm text-gray-700 list-disc list-inside">
+                      {product.care_instructions.map((instruction, idx) => (
+                        <li key={idx}>{instruction}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
+                {/* Certifications */}
+                {product.certifications && product.certifications.length > 0 && (
+                  <div className="mt-4">
+                    <h4 className="font-medium mb-2">Certifications</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {product.certifications.map((cert, idx) => (
+                        <span key={idx} className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                          {cert}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Size Selection */}
             <div className="mb-6">
@@ -188,6 +286,29 @@ export const Product = () => {
           </div>
         </div>
       </div>
+
+      {/* Reviews */}
+      {product?.id && (
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <EnhancedProductReviews productId={product.id} />
+        </div>
+      )}
+
+      {/* Product Recommendations */}
+      {product?.id && (
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <ProductRecommendations 
+            productId={product.id} 
+            type="similar" 
+            maxItems={4}
+          />
+          <ProductRecommendations 
+            productId={product.id} 
+            type="frequently_bought_together" 
+            maxItems={3}
+          />
+        </div>
+      )}
     </div>
   );
 };

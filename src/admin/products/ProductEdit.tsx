@@ -73,7 +73,26 @@ export default function ProductEdit() {
   const isNew = id === 'new'
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [form, setForm] = useState<any>({ name: '', price: 0, status: 'active', stockQuantity: 0, images: [] as string[] })
+  const [form, setForm] = useState<any>({ 
+    name: '', price: 0, status: 'active', stockQuantity: 0, images: [] as string[],
+    // Quality-focused fields
+    fabricComposition: {},
+    threadCount: 0,
+    fabricWeight: 0,
+    durabilityScore: 5,
+    stretchLevel: '',
+    careInstructions: [],
+    qualityGrade: 'standard',
+    sustainabilityRating: 'B',
+    breathabilityRating: 3,
+    fabricOrigin: '',
+    manufacturingLocation: '',
+    certifications: [],
+    fitType: 'regular',
+    seasonalCollection: '',
+    lifestyleTags: [],
+    recommendedFor: []
+  })
   const [images, setImages] = useState<any[]>([])
 
   useEffect(() => {
@@ -141,6 +160,75 @@ export default function ProductEdit() {
             <label className="flex items-center gap-2"><input type="checkbox" checked={!!form.isFeatured} onChange={e=>setForm({ ...form, isFeatured: e.target.checked })}/> Featured</label>
             <label className="flex items-center gap-2"><input type="checkbox" checked={!!form.isNew} onChange={e=>setForm({ ...form, isNew: e.target.checked })}/> New</label>
             <label className="flex items-center gap-2"><input type="checkbox" checked={!!form.isOnSale} onChange={e=>setForm({ ...form, isOnSale: e.target.checked })}/> On Sale</label>
+          </div>
+
+          {/* Quality-Focused Section */}
+          <div className="mt-8 p-4 border rounded bg-gray-50">
+            <h3 className="text-lg font-semibold mb-4">Quality Information</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <select className="border rounded p-3" value={form.qualityGrade||'standard'} onChange={e=>setForm({ ...form, qualityGrade: e.target.value })}>
+                <option value="basic">Basic Quality</option>
+                <option value="standard">Standard Quality</option>
+                <option value="premium">Premium Quality</option>
+              </select>
+              
+              <select className="border rounded p-3" value={form.sustainabilityRating||'B'} onChange={e=>setForm({ ...form, sustainabilityRating: e.target.value })}>
+                <option value="A+">A+ Sustainability</option>
+                <option value="A">A Sustainability</option>
+                <option value="B+">B+ Sustainability</option>
+                <option value="B">B Sustainability</option>
+                <option value="C+">C+ Sustainability</option>
+                <option value="C">C Sustainability</option>
+              </select>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+              <input className="border rounded p-3" placeholder="Thread Count" type="number" value={form.threadCount||0} onChange={e=>setForm({ ...form, threadCount: Number(e.target.value) })} />
+              <input className="border rounded p-3" placeholder="Fabric Weight (oz/yd²)" type="number" step="0.1" value={form.fabricWeight||0} onChange={e=>setForm({ ...form, fabricWeight: Number(e.target.value) })} />
+              <input className="border rounded p-3" placeholder="Durability (1-10)" type="number" min="1" max="10" value={form.durabilityScore||5} onChange={e=>setForm({ ...form, durabilityScore: Number(e.target.value) })} />
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <select className="border rounded p-3" value={form.stretchLevel||''} onChange={e=>setForm({ ...form, stretchLevel: e.target.value })}>
+                <option value="">Select Stretch Level</option>
+                <option value="none">No Stretch</option>
+                <option value="low">Low Stretch</option>
+                <option value="medium">Medium Stretch</option>
+                <option value="high">High Stretch</option>
+                <option value="four-way">Four-Way Stretch</option>
+              </select>
+              
+              <input className="border rounded p-3" placeholder="Breathability (1-5)" type="number" min="1" max="5" value={form.breathabilityRating||3} onChange={e=>setForm({ ...form, breathabilityRating: Number(e.target.value) })} />
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <select className="border rounded p-3" value={form.fitType||'regular'} onChange={e=>setForm({ ...form, fitType: e.target.value })}>
+                <option value="slim">Slim Fit</option>
+                <option value="regular">Regular Fit</option>
+                <option value="relaxed">Relaxed Fit</option>
+                <option value="oversized">Oversized Fit</option>
+              </select>
+              
+              <input className="border rounded p-3" placeholder="Seasonal Collection" value={form.seasonalCollection||''} onChange={e=>setForm({ ...form, seasonalCollection: e.target.value })} />
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <input className="border rounded p-3" placeholder="Fabric Origin" value={form.fabricOrigin||''} onChange={e=>setForm({ ...form, fabricOrigin: e.target.value })} />
+              <input className="border rounded p-3" placeholder="Manufacturing Location" value={form.manufacturingLocation||''} onChange={e=>setForm({ ...form, manufacturingLocation: e.target.value })} />
+            </div>
+            
+            <div className="grid grid-cols-1 gap-4 mt-4">
+              <textarea className="border rounded p-3" placeholder="Care Instructions (JSON format: [\"Machine wash cold\", \"Tumble dry low\"])" value={JSON.stringify(form.careInstructions||[])} onChange={e=>{ try { setForm({ ...form, careInstructions: JSON.parse(e.target.value) }); } catch {} }} />
+              <textarea className="border rounded p-3" placeholder="Certifications (JSON format: [\"GOTS\", \"OEKO-TEX\"])" value={JSON.stringify(form.certifications||[])} onChange={e=>{ try { setForm({ ...form, certifications: JSON.parse(e.target.value) }); } catch {} }} />
+              <textarea className="border rounded p-3" placeholder="Lifestyle Tags (JSON format: [\"casual\", \"work\", \"weekend\"])" value={JSON.stringify(form.lifestyleTags||[])} onChange={e=>{ try { setForm({ ...form, lifestyleTags: JSON.parse(e.target.value) }); } catch {} }} />
+              <textarea className="border rounded p-3" placeholder="Recommended For (JSON format: [\"office\", \"date night\", \"casual outings\"])" value={JSON.stringify(form.recommendedFor||[])} onChange={e=>{ try { setForm({ ...form, recommendedFor: JSON.parse(e.target.value) }); } catch {} }} />
+            </div>
+            
+            <div className="mt-4">
+              <label className="block text-sm font-medium mb-2">Fabric Composition</label>
+              <textarea className="border rounded p-3 w-full" placeholder="Fabric Composition (JSON format: {\"cotton\": 60, \"polyester\": 40})" rows={3} value={JSON.stringify(form.fabricComposition||{})} onChange={e=>{ try { setForm({ ...form, fabricComposition: JSON.parse(e.target.value) }); } catch {} }} />
+            </div>
           </div>
 
           {/* Images */}

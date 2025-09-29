@@ -1,6 +1,9 @@
 import axios, { AxiosError } from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:10000';
+// Normalize base URL: if set to '/api', use relative '' to avoid '/api/api' duplication since
+// endpoint paths already include '/api/*'. If set to absolute (http://...), use as-is.
+const RAW_BASE = (import.meta as any).env?.VITE_API_URL as string | undefined;
+const API_BASE_URL = (!RAW_BASE || RAW_BASE === '/api') ? '' : RAW_BASE;
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -125,6 +128,33 @@ export const OrdersAPI = {
   getByNumber: (orderNumber: string) => api.get<ApiResponse<any>>(`/api/orders/by-number/${encodeURIComponent(orderNumber)}`),
 };
 
+// Marketing endpoints (Brevo automation helpers)
+export const MarketingAPI = {
+  newsletterSubscribe: (payload: { email: string; firstName?: string }) =>
+    api.post<ApiResponse<{ success: boolean; message: string }>>('/api/marketing/newsletter/subscribe', payload),
+  contactDates: (payload: { email: string; birthdate?: string; anniversary?: string }) =>
+    api.post<ApiResponse<{ success: boolean; message: string }>>('/api/marketing/contact/dates', payload),
+};
+
+// Cart + Wishlist APIs (authenticated)
+export const CartAPI = {
+  get: () => api.get<ApiResponse<{ cart: any; items: any[] }>>('/api/cart'),
+  add: (payload: { productId: string; size: string; color: string; quantity: number; price?: number }) =>
+    api.post<ApiResponse<{ cart: any; items: any[] }>>('/api/cart/add', payload),
+  update: (payload: { productId: string; size: string; color: string; quantity: number }) =>
+    api.put<ApiResponse<{ cart: any; items: any[] }>>('/api/cart/update', payload),
+  remove: (payload: { productId: string; size: string; color: string }) =>
+    api.delete<ApiResponse<{ cart: any; items: any[] }>>('/api/cart/remove', { data: payload }),
+  clear: () => api.delete<ApiResponse<{ cart: any; items: any[] }>>('/api/cart/clear'),
+};
+
+export const AdminAPI = {
+  ordersList: () => api.get<ApiResponse<any[]>>('/api' + `${import.meta.env.VITE_ADMIN_BASE_PATH ? '/' + (import.meta as any).env.VITE_ADMIN_BASE_PATH : '/cl-private-dashboard-2024'}` + '/orders'),
+  orderGet: (id: string) => api.get<ApiResponse<any>>('/api' + `${import.meta.env.VITE_ADMIN_BASE_PATH ? '/' + (import.meta as any).env.VITE_ADMIN_BASE_PATH : '/cl-private-dashboard-2024'}` + `/orders/${encodeURIComponent(id)}`),
+  orderUpdate: (id: string, payload: { order_status?: string; tracking_number?: string; courier?: string; track_url?: string; estimated_delivery?: string; }) =>
+    api.patch<ApiResponse<any>>('/api' + `${import.meta.env.VITE_ADMIN_BASE_PATH ? '/' + (import.meta as any).env.VITE_ADMIN_BASE_PATH : '/cl-private-dashboard-2024'}` + `/orders/${encodeURIComponent(id)}`, payload),
+};
+
 // Product APIs
 export type ProductQuery = {
   page?: number;
@@ -150,4 +180,20 @@ export const ProductsAPI = {
   filters: () => api.get<ApiResponse<any>>('/api/products/filters'),
   get: (idOrSlug: string) => api.get<ApiResponse<any>>(`/api/products/${encodeURIComponent(idOrSlug)}`),
   searchSuggestions: (q: string) => api.get<ApiResponse<any[]>>('/api/products/search/suggestions', { params: { q } }),
+};
+
+// Reviews API
+export type ReviewsQuery = {
+  page?: number; limit?: number; sort?: 'newest'|'helpful'; photosOnly?: boolean; verifiedOnly?: boolean; minRating?: number; fit?: 'too_small'|'perfect'|'too_large';
+}
+export const ReviewsAPI = {
+  summary: (productId: string) => api.get<ApiResponse<{ total: number; average: number; counts: Record<number, number>; verified: number }>>(`/api/reviews/summary/${encodeURIComponent(productId)}`),
+  list: (productId: string, params: ReviewsQuery = {}) => api.get<ApiResponse<any[]>>(`/api/reviews/${encodeURIComponent(productId)}`, { params }),
+  create: (payload: { productId: string; rating: number; reviewTitle?: string; reviewText: string; reviewerName: string; reviewerEmail: string; sizePurchased?: string; colorPurchased?: string; fitFeedback?: 'too_small'|'perfect'|'too_large'; qualityRating?: number; comfortRating?: number; styleRating?: number; }) => api.post<ApiResponse<any>>('/api/reviews', payload),
+  vote: (reviewId: string, isHelpful: boolean) => api.post<ApiResponse<{ helpful: number; unhelpful: number }>>('/api/reviews/vote', { reviewId, isHelpful }),
+  uploadImages: (files: File[]) => {
+    const form = new FormData();
+    files.forEach(f => form.append('images', f));
+    return api.post<ApiResponse<{ urls: string[] }>>('/api/reviews/upload-image', form, { headers: { 'Content-Type': 'multipart/form-data' } });
+  }
 };

@@ -14,11 +14,12 @@ export default function VariantMatrix({ productId, base }: { productId: string; 
   const [error, setError] = useState<string | null>(null)
 
   const load = async () => {
+    if (!productId) return;
     const res = await fetch(`${import.meta.env.VITE_API_URL}/${base}/variants?productId=${encodeURIComponent(productId)}`, { credentials: 'include' })
     const json = await res.json()
     if (res.ok) setRows(json.data||[])
   }
-  useEffect(()=>{ load() },[])
+  useEffect(()=>{ load() },[productId])
 
   const addVariants = () => {
     const newRows = sizeSet.map(s => ({ id: undefined, size: s, color, material, sku: '', stock_quantity: 0, price_adjustment: 0 }))
@@ -26,6 +27,7 @@ export default function VariantMatrix({ productId, base }: { productId: string; 
   }
 
   const save = async () => {
+    if (!productId) { setError('Save failed: product not saved yet'); return; }
     setLoading(true); setError(null)
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/${base}/variants/upsert`, {
