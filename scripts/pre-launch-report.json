@@ -1,12 +1,12 @@
 {
-  "timestamp": "2025-09-29T16:13:50.789Z",
-  "overall_score": 60,
+  "timestamp": "2025-09-29T16:27:45.100Z",
+  "overall_score": 50,
   "status": "CRITICAL_ISSUES",
   "checks": {
     "git": {
-      "status": "warning",
-      "score": 50,
-      "message": "Uncommitted changes - run git add . && git commit && git push"
+      "status": "failed",
+      "score": 0,
+      "message": "Run: git remote add origin <your-repo-url>"
     },
     "environment": {
       "status": "failed",
@@ -30,7 +30,7 @@
     }
   },
   "recommendations": [
-    "⚠️  git: Uncommitted changes - run git add . && git commit && git push",
+    "❌ git: Run: git remote add origin <your-repo-url>",
     "❌ environment: Missing: VITE_GA4_MEASUREMENT_ID, VITE_SENTRY_DSN",
     "❌ backend: Backend not accessible: getaddrinfo ENOTFOUND api.calistalife.com",
     "❌ ssl: Issues: api.calistalife.com: getaddrinfo ENOTFOUND api.calistalife.com"
