@@ -2,17 +2,112 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TheCalista</title>
-    <meta name="description" content="Calista — contemporary streetwear with minimalist design and bold details. Live life in colours." />
-    <meta property="og:title" content="CALISTA — Live Life In Colours" />
-    <meta property="og:description" content="Contemporary streetwear with minimalist design. Explore collections, new arrivals, and best sellers." />
+    <title>CalistaLife — Premium Quality Products for Life in Colors</title>
+    <meta name="description" content="CalistaLife — Premium quality products for life in colors. Discover our curated collection of sustainable, high-quality items for contemporary living." />
+    <meta name="theme-color" content="#0b0b0f" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="canonical" href="https://calistalife.com" />
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="CalistaLife — Premium Quality Products for Life in Colors" />
+    <meta property="og:description" content="Discover our curated collection of sustainable, high-quality items for contemporary living. Live life in colors." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://calistalife.com/" />
-    <meta property="og:image" content="/og-cover.png" />
+    <meta property="og:image" content="https://calistalife.com/og-cover.png" />
+    <meta property="og:site_name" content="CalistaLife" />
+    
+    <!-- Twitter Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="CalistaLife — Premium Quality Products" />
+    <meta name="twitter:description" content="Premium quality products for life in colors. Sustainable, high-quality items for contemporary living." />
+    <meta name="twitter:image" content="https://calistalife.com/og-cover.png" />
+    
+    <!-- Google Analytics 4 -->
+    <script type="module">
+      const measurementId = import.meta.env?.VITE_GA4_MEASUREMENT_ID;
+      if (measurementId && typeof window !== 'undefined') {
+        // Load GA4 script
+        const script = document.createElement('script');
+        script.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
+        script.async = true;
+        document.head.appendChild(script);
+        
+        // Initialize GA4
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', measurementId, {
+          page_title: 'CalistaLife Homepage',
+          page_location: window.location.href
+        });
+        window.gtag = gtag;
+      }
+    </script>
+    
+    <!-- Sentry Error Monitoring -->
+    <script type="module">
+      const sentryDsn = import.meta.env?.VITE_SENTRY_DSN;
+      if (sentryDsn && typeof window !== 'undefined') {
+        import('https://browser.sentry-cdn.com/7.78.0/bundle.tracing.min.js').then((Sentry) => {
+          Sentry.init({
+            dsn: sentryDsn,
+            environment: import.meta.env?.VITE_APP_ENV || 'production',
+            tracesSampleRate: 0.1,
+            beforeSend(event) {
+              // Filter out development errors
+              if (event.exception && event.exception.values[0].value.includes('localhost')) {
+                return null;
+              }
+              return event;
+            }
+          });
+        }).catch(console.warn);
+      }
+    </script>
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "CalistaLife",
+      "url": "https://calistalife.com",
+      "logo": "https://calistalife.com/logo.png",
+      "description": "Premium quality products for life in colors. Sustainable, high-quality items for contemporary living.",
+      "sameAs": [
+        "https://instagram.com/calistalife",
+        "https://facebook.com/calistalife"
+      ],
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://calistalife.com/search?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+    
     <meta name="google-signin-client_id" content="884034180472-rnbtmrfdk80a4r5jma1emh0kcjfl6slg.apps.googleusercontent.com" />
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <!-- Brevo SDK v2 (gated by env) -->
+    <script type="module">
+      try {
+        const enable = String(import.meta.env?.VITE_ENABLE_BREVO_CHAT || '').toLowerCase() === 'true';
+        const clientKey = import.meta.env?.VITE_BREVO_CLIENT_KEY || '6ewxl4rhcmbnrhir3b33jpgi';
+        if (enable && clientKey && typeof window !== 'undefined') {
+          const s = document.createElement('script');
+          s.src = 'https://cdn.brevo.com/js/sdk-loader.js';
+          s.async = true;
+          s.onload = () => {
+            window.Brevo = window.Brevo || [];
+            window.Brevo.push(['init', { client_key: clientKey }]);
+          };
+          document.head && document.head.appendChild(s);
+        }
+      } catch {}
+    </script>
   </head>
   <body>
     <div id="root"></div>
