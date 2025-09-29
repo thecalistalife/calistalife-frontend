@@ -1,28 +1,32 @@
 # CalistaLife Netlify Configuration
-# Note: SECRETS_SCAN_* variables must be set in Netlify UI under Site Settings > Environment Variables
+# Frontend environment variables (VITE_*) are public by design and safe for browser use
 
 [build]
   base = "frontend"
-  command = "npm ci --production && npm run build"
+  command = "npm ci && npm run build"
   publish = "dist"
 
 [build.environment]
+  # Exclude legitimate frontend environment variables from secrets scanning
+  SECRETS_SCAN_OMIT_KEYS = "VITE_APP_ENV,VITE_GA4_MEASUREMENT_ID,VITE_SENTRY_DSN,VITE_API_URL,VITE_FACEBOOK_PIXEL_ID,VITE_GOOGLE_ADS_ID,VITE_BREVO_CLIENT_KEY,VITE_ENABLE_BREVO_CHAT"
   NODE_VERSION = "18"
   NPM_VERSION = "9"
-  # Secrets scanning configuration
-  SECRETS_SCAN_ENABLED = "false"
-  SECRETS_SCAN_OMIT_KEYS = "VITE_GA4_MEASUREMENT_ID,VITE_SENTRY_DSN,VITE_API_URL,VITE_APP_ENV"
-  SECRETS_SCAN_OMIT_PATHS = "dist/**,**/*.js.map,index.html,.env.example,WARP.md,src/**"
 
-# Security headers
+# Headers for security and performance
 [[headers]]
   for = "/*"
   [headers.values]
+    Cache-Control = "public, max-age=3600"
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
     X-XSS-Protection = "1; mode=block"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
 
 # API proxy to backend
 [[redirects]]
@@ -31,23 +35,8 @@
   status = 200
   force = true
 
-# SPA routing
+# SPA routing (must be last)
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-
-# Environment-specific settings
-[context.production]
-  command = "npm ci --production && npm run build"
-  [context.production.environment]
-    SECRETS_SCAN_ENABLED = "false"
-    SECRETS_SCAN_OMIT_KEYS = "VITE_GA4_MEASUREMENT_ID,VITE_SENTRY_DSN,VITE_API_URL,VITE_APP_ENV"
-    SECRETS_SCAN_OMIT_PATHS = "dist/**,**/*.js.map,index.html,.env.example,WARP.md,src/**"
-  
-[context.deploy-preview]
-  command = "npm ci && npm run build"
-  [context.deploy-preview.environment]
-    SECRETS_SCAN_ENABLED = "false"
-    SECRETS_SCAN_OMIT_KEYS = "VITE_GA4_MEASUREMENT_ID,VITE_SENTRY_DSN,VITE_API_URL,VITE_APP_ENV"
-    SECRETS_SCAN_OMIT_PATHS = "dist/**,**/*.js.map,index.html,.env.example,WARP.md,src/**"
