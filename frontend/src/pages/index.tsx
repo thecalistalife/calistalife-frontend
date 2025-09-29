@@ -19,6 +19,7 @@ export const Search = () => <CollectionsPage />;
 
 
 import { useLocation } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 
 export const OrderSuccess = () => {
   const location = useLocation() as any;
@@ -50,6 +51,11 @@ export const OrderSuccess = () => {
         <h1 className="text-3xl font-bold mb-4 text-green-600">Order Successful!</h1>
         {orderNumber ? (
           <>
+            {(() => { try {
+              const items = [] as any[]; // keep lightweight; main server tracking already fired
+              const total = undefined;
+              import('../lib/brevoTracker').then(m => m.trackBrevo('purchase', { orderNumber, total, items }));
+            } catch {} return null; })()}
             <p className="mb-2">Your order number is <span className="font-semibold">{orderNumber}</span>.</p>
             <p className="mb-8 text-sm">Payment status: <span className="capitalize font-medium">{status}</span></p>
           </>

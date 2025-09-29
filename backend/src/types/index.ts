@@ -1,8 +1,7 @@
 import { Request } from 'express';
-import { Document } from 'mongoose';
 
 // User Types
-export interface IUser extends Document {
+export interface IUser {
   _id: string;
   name: string;
   email: string;
@@ -75,12 +74,12 @@ export interface ICartItem {
   price: number;
 }
 
-export interface ICart extends Document {
+export interface ICart {
   user: string | IUser;
   items: ICartItem[];
   totalAmount: number;
   createdAt: Date;
-updatedAt: Date;
+  updatedAt: Date;
   addItem(productId: string, size: string, color: string, quantity: number, price: number): Promise<ICart>;
   removeItem(productId: string, size: string, color: string): Promise<ICart>;
   updateItemQuantity(productId: string, size: string, color: string, quantity: number): Promise<ICart>;
@@ -94,11 +93,11 @@ export interface IWishlistItem {
   addedAt: Date;
 }
 
-export interface IWishlist extends Document {
+export interface IWishlist {
   user: string | IUser;
   items: IWishlistItem[];
   createdAt: Date;
-updatedAt: Date;
+  updatedAt: Date;
   addItem(productId: string): Promise<IWishlist>;
   removeItem(productId: string): Promise<IWishlist>;
 }
@@ -115,7 +114,7 @@ export interface IOrderItem {
   total: number;
 }
 
-export interface IOrder extends Document {
+export interface IOrder {
   _id: string;
   user: string | IUser;
   orderNumber: string;
@@ -137,7 +136,7 @@ export interface IOrder extends Document {
 }
 
 // Collection Types
-export interface ICollection extends Document {
+export interface ICollection {
   _id: string;
   name: string;
   slug: string;
@@ -150,7 +149,7 @@ export interface ICollection extends Document {
 }
 
 // Review Types
-export interface IReview extends Document {
+export interface IReview {
   _id: string;
   user: string | IUser;
   product: string | IProduct;

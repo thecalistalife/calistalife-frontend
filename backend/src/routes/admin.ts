@@ -2,6 +2,11 @@ import { Router } from 'express'
 import { adminLoginLimiter, login, verify2fa, setup2faStart, setup2faVerify, logout, getSession, lockdown } from '@/controllers/adminAuth'
 import { requireAdmin } from '@/middleware/admin'
 import { listAdmins, createAdmin, setAdminActive } from '@/controllers/adminUsers'
+import adminProducts from './adminProducts'
+import adminMedia from './adminMedia'
+import adminVariants from './adminVariants'
+import adminCategories from './adminCategories'
+import adminCollections from './adminCollections'
 
 const router = Router()
 
@@ -25,6 +30,25 @@ router.post('/lockdown', requireAdmin, lockdown)
 router.get('/users', requireAdmin, listAdmins)
 router.post('/users', requireAdmin, createAdmin)
 router.patch('/users/:id', requireAdmin, setAdminActive)
+
+// Products management
+router.use('/products', adminProducts)
+// Media management (images)
+router.use('/media', adminMedia)
+// Variants management
+router.use('/variants', adminVariants)
+// Categories management
+router.use('/categories', adminCategories)
+// Collections management
+router.use('/collections', adminCollections)
+
+// Orders management
+import adminOrders from './adminOrders'
+router.use('/orders', adminOrders)
+
+// Reviews management
+import adminReviews from './adminReviews'
+router.use('/reviews', adminReviews)
 
 // Example protected endpoint
 router.get('/dashboard', requireAdmin, (req, res) => res.status(200).json({ success: true, message: 'Admin OK' }))

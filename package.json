@@ -10,16 +10,25 @@
     "dev:backend": "npm --prefix ./backend run dev",
     "build": "npm --prefix ./frontend run build && npm --prefix ./backend run build",
     "preview": "npm --prefix ./frontend run preview",
-    "lint": "npm --prefix ./frontend run lint"
+    "lint": "npm --prefix ./frontend run lint",
+    "smoke:admin": "node ./scripts/adminSmokeTest.cjs",
+    "test:admin:products": "node ./scripts/testAdminProducts.cjs",
+    "test:admin:orders": "node ./scripts/testAdminOrders.cjs",
+    "test:admin:emails": "node ./scripts/testAdminEmails.cjs",
+    "test:admin:complete": "node ./scripts/testAdminComplete.cjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"
   },
   "scriptsInfo": {
     "setup": "Install dependencies in both apps",
-    "dev": "Run backend on 3001 and frontend on 5173 with proxy"
+    "dev": "Run backend on 3001 and frontend on 5174 with proxy"
   },
   "setup": {
     "windows": "npm install && pushd backend && npm install && popd && pushd frontend && npm install && popd"
+  },
+  "dependencies": {
+    "@sentry/nextjs": "^10.15.0",
+    "axios": "^1.12.2"
   }
 }

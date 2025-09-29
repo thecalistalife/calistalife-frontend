@@ -6,6 +6,8 @@ import { Carousel } from '../components/index';
 import { products, collections } from '../data/index';
 import { handleImageError } from '../utils/index';
 import { ArrowRight, Star, TrendingUp, Award, Heart } from 'lucide-react';
+import { MarketingAPI } from '../lib/api';
+import { trackBrevo } from '../lib/brevoTracker';
 
 export const HomeAnimated = () => {
   const newArrivals = products.filter(product => product.isNew).slice(0, 4);
@@ -514,6 +516,20 @@ export const HomeAnimated = () => {
             </p>
             
             <motion.form 
+              onSubmit={async (e: any) => {
+                e.preventDefault();
+                const form = e.currentTarget as HTMLFormElement;
+                const input = form.querySelector('input[type="email"]') as HTMLInputElement | null;
+                if (!input?.value) return;
+                try {
+                  await MarketingAPI.newsletterSubscribe({ email: input.value });
+                  try { trackBrevo('newsletter_signup', { source: 'home_animated' }); } catch {}
+                  input.value = '';
+                  alert('Thanks for subscribing!');
+                } catch (err: any) {
+                  alert(err?.response?.data?.message || 'Subscription failed');
+                }
+              }}
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               transition={{ delay: 0.3 }}

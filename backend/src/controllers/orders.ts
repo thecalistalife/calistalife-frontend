@@ -1,6 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import { supabaseAdmin } from '@/utils/supabase';
-import { sendMail } from '@/utils/email';
+import { sendOrderEmail } from '@/services/orderEmailService';
+import { persistentEmailQueue } from '@/services/persistentEmailQueue';
+import { generateOrderNumber } from '@/utils/order';
+import { logger } from '@/utils/logger';
+import { trackPurchase } from '@/services/marketing';
 
 export const createOrder = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -26,7 +30,7 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
       return;
     }
 
-    const orderNumber = `TC${Date.now()}${Math.floor(Math.random() * 1000)}`;
+    const orderNumber = generateOrderNumber('CL');
 
     // Insert order row
     const { data: orderRow, error: orderErr } = await supabaseAdmin
@@ -40,7 +44,7 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
         total_amount: totalAmount,
         payment_method: payment?.method || 'cod',
         payment_status: payment?.status || 'pending',
-        order_status: 'processing',
+        order_status: 'confirmed',
         shipping_address: shippingAddress || null,
         billing_address: billingAddress || null,
         notes: notes || null,
@@ -72,17 +76,40 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
     if (itemsErr) throw itemsErr;
 
     try {
-      const toEmail = (shippingAddress?.email || (user?.email)) as string | undefined;
-      if (toEmail) {
-        await sendMail({
-          to: toEmail,
-          subject: `Order received: ${orderNumber}`,
-          html: `<p>Thanks for your order.</p><p>Your order number is <b>${orderNumber}</b>.</p><p>Total: <b>${totalAmount}</b></p>`
-        });
+      // Send order confirmation immediately (multi-provider inside emailService)
+      const recipientEmail = (shippingAddress?.email || user?.email) as string | undefined;
+      logger.info({ orderNumber, recipientEmail }, 'Sending order confirmation email');
+      await sendOrderEmail('confirmed', { order: orderRow, items: orderItems });
+      logger.info({ orderNumber }, 'Order confirmation email dispatched');
+
+      // Schedule processing email ~90 minutes later
+      const runAt = new Date(Date.now() + 90 * 60 * 1000);
+      if (recipientEmail) {
+        await persistentEmailQueue.schedule(orderRow!.order_number, 'processing', recipientEmail, runAt);
       }
-    } catch (e) {
-      console.log('Email notify failed:', (e as any)?.message);
+    } catch (e: any) {
+      logger.error({ orderNumber, err: e?.message || e }, 'Immediate order confirmation email failed');
+      // Fallback: queue confirmation email for retry in ~1 minute with items as metadata
+      const recipientEmail = (shippingAddress?.email || user?.email) as string | undefined;
+      if (recipientEmail) {
+        try {
+          const retryAt = new Date(Date.now() + 60 * 1000);
+          await persistentEmailQueue.schedule(orderRow!.order_number, 'confirmed', recipientEmail, retryAt, { items: orderItems });
+          logger.info({ orderNumber }, 'Queued confirmation email for retry');
+        } catch (qerr: any) {
+          logger.error({ orderNumber, err: qerr?.message || qerr }, 'Failed to queue confirmation email');
+        }
+      }
     }
+
+    // Fire-and-forget marketing tracking (do not await)
+    try {
+      const customerEmail = (shippingAddress?.email || user?.email) as string | undefined;
+      if (customerEmail) {
+        const cleanItems = items.map((it: any) => ({ id: it.productId, name: it.name, price: it.price, qty: it.quantity }));
+        trackPurchase({ email: customerEmail, orderNumber, total: totalAmount, items: cleanItems });
+      }
+    } catch {}
 
     res.status(200).json({ success: true, message: 'Order created', data: { id: orderRow!.id, orderNumber } });
   } catch (err) {

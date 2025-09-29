@@ -1,10 +1,16 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { NavigationAnimated, Footer, MiniCartDrawer, FreeShippingBar, ThemeShiftController } from './components';
 import Toaster from './components/Toaster';
 import { SmoothScrollProvider } from './components/SmoothScrollProvider';
 import ProtectedRoute from './components/ProtectedRoute';
 import { ColorGradeOverlay } from './components/ColorGradeOverlay';
+import { analytics } from './lib/analytics';
+import { utmTracker } from './lib/utm-tracker';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { AnalyticsTracker } from './components/AnalyticsTracker';
+import { sentry } from './lib/sentry';
 import { HomeAnimated } from './pages/HomeAnimated';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -29,24 +35,39 @@ import {
 } from './pages';
 import AdminLogin from './admin/AdminLogin';
 import AdminDashboard from './admin/AdminDashboard';
+import ReviewsAdmin from './admin/reviews/ReviewsAdmin';
 
 const queryClient = new QueryClient();
 const ADMIN_BASE = (import.meta as any).env?.VITE_ADMIN_BASE_PATH || 'cl-private-dashboard-2024';
 
 function App() {
+  // Initialize analytics and monitoring on app start
+  useEffect(() => {
+    // Initialize Sentry for error tracking
+    sentry.init();
+    
+    // Initialize analytics services
+    analytics.init();
+    
+    // UTM tracker is initialized automatically
+    console.log('📊 Marketing analytics initialized');
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
-        <SmoothScrollProvider>
-          <div className="min-h-screen bg-white relative">
-            <ColorGradeOverlay />
-            <ThemeShiftController />
-            <NavigationAnimated />
-            <FreeShippingBar />
-            <MiniCartDrawer />
-            <Toaster />
-            <main>
-              <Routes>
+        <ErrorBoundary>
+          <AnalyticsTracker>
+            <SmoothScrollProvider>
+              <div className="min-h-screen bg-white relative">
+                <ColorGradeOverlay />
+                <ThemeShiftController />
+                <NavigationAnimated />
+                <FreeShippingBar />
+                <MiniCartDrawer />
+                <Toaster />
+                <main>
+                  <Routes>
                 <Route path="/" element={<HomeAnimated />} />
                 <Route path="/collections" element={<Collections />} />
                 <Route path="/collections/:slug" element={<Category />} />
@@ -62,6 +83,7 @@ function App() {
                 <Route path={`/${ADMIN_BASE}`} element={<NotFound />} />
                 <Route path={`/${ADMIN_BASE}/enter`} element={<AdminLogin base={ADMIN_BASE} />} />
                 <Route path={`/${ADMIN_BASE}/dashboard`} element={<AdminDashboard base={ADMIN_BASE} />} />
+                <Route path={`/${ADMIN_BASE}/reviews`} element={<ReviewsAdmin />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/login" element={<Login />} />
@@ -71,11 +93,13 @@ function App() {
                 <Route path="/verify-email" element={<VerifyEmail />} />
                 <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
-              </Routes>
-            </main>
-            <Footer />
-          </div>
-        </SmoothScrollProvider>
+                  </Routes>
+                </main>
+                <Footer />
+              </div>
+            </SmoothScrollProvider>
+          </AnalyticsTracker>
+        </ErrorBoundary>
       </Router>
     </QueryClientProvider>
   );

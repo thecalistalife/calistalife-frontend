@@ -7,7 +7,7 @@ This repo is now structured with separate frontend and backend apps:
 
 Run both apps:
 
-- npm run dev — starts backend (port 3001) and frontend (port 5173)
+- npm run dev — starts backend (port 3001) and frontend (port 5174)
 - Frontend proxies /api/* to http://localhost:3001
 
 Build:
@@ -47,7 +47,7 @@ npm install
 npm run dev
 ```
 
-Frontend will be available at: **http://localhost:5173**
+Frontend will be available at: **http://localhost:5174**
 
 ### 3. Backend Setup
 
@@ -184,7 +184,7 @@ JWT_SECRET=your-super-secret-jwt-key
 JWT_EXPIRE=7d
 
 # CORS
-CLIENT_URL=http://localhost:5173
+CLIENT_URL=http://localhost:5174
 ```
 
 ## 📊 API Endpoints
@@ -249,3 +249,39 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ---
 
 **TheCalista** - Built with ❤️ by the development team
+
+---
+
+## Brevo Conversations Chat (optional)
+
+Enable the Brevo chat widget on the storefront.
+
+1) Set environment variables (frontend)
+- In frontend/.env.local (or your hosting env):
+
+```
+VITE_ENABLE_BREVO_CHAT=true
+VITE_BREVO_CONVERSATIONS_ID=68d1094bd5c93c660e0b1fd6
+```
+
+2) How it works
+- index.html loads the widget only when VITE_ENABLE_BREVO_CHAT === 'true' and the ID is present.
+- No build-time secrets; values are read by Vite at runtime.
+
+3) Disable anytime
+- Set VITE_ENABLE_BREVO_CHAT=false and redeploy or refresh dev.
+
+## Order email BCC monitor (optional)
+
+Add a mailbox to receive a blind-copy of every order email (confirmed/processing/shipped/etc.).
+
+1) Backend .env
+
+```
+# Comma-separated emails
+ORDER_EMAIL_BCC=ops@calistalife.com
+```
+
+2) Behavior
+- The backend automatically BCCs this address (all providers: smtp, brevo, sendgrid, mailgun).
+- Orders still succeed even if the BCC delivery fails; failures are logged and queued for retry when applicable.

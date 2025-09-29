@@ -18,8 +18,8 @@ app.use(helmet({
 app.use(cors({
   origin: (origin, callback) => {
     const allowlist = [
-      process.env.FRONTEND_URL || 'http://localhost:5173',
-      process.env.CLIENT_URL || 'http://localhost:5173',
+      process.env.FRONTEND_URL || 'http://localhost:5174',
+      process.env.CLIENT_URL || 'http://localhost:5174',
       'http://localhost:3000'
     ];
     if (!origin || allowlist.includes(origin)) {

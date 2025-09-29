@@ -3,6 +3,7 @@ import { AuthRequest, ApiResponse } from '@/types';
 import { generateAccessToken, generateRefreshToken, getAccessCookieOptions, getRefreshCookieOptions } from '@/utils/auth';
 import crypto from 'crypto';
 import { sendMail } from '@/utils/email';
+import { logger } from '@/utils/logger';
 import { users as SupaUsers, SupabaseUser } from '@/services/supabaseUser';
 
 // Register user (Supabase)
@@ -140,9 +141,14 @@ export const forgotPassword = async (req: Request, res: Response, next: NextFunc
       const resetHash = crypto.createHash('sha256').update(resetToken).digest('hex');
       await SupaUsers.update(user.id, { password_reset_token: resetHash as any, password_reset_expires: new Date(Date.now() + 60 * 60 * 1000).toISOString() as any } as any);
 
-      const baseUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+      const baseUrl = process.env.CLIENT_URL || 'http://localhost:5174';
       const resetUrl = `${baseUrl}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
-      await sendMail({ to: email, subject: 'Reset your password', html: `<p>You requested a password reset.</p><p>Click <a href="${resetUrl}">here</a> to reset your password. The link expires in 1 hour.</p>` });
+      try {
+        await sendMail({ to: email, subject: 'Reset your password', html: `<p>You requested a password reset.</p><p>Click <a href="${resetUrl}">here</a> to reset your password. The link expires in 1 hour.</p>`, category: 'password-reset' });
+      } catch (mailErr) {
+        logger.error({ err: mailErr, email }, 'Failed to send password reset email');
+        // Do not leak email failure to client; always return success for privacy
+      }
     }
     res.status(200).json({ success: true, message: 'If that email exists, a reset link has been sent' });
   } catch (error) {
@@ -186,9 +192,14 @@ export const requestEmailVerification = async (req: AuthRequest, res: Response, 
     const hash = crypto.createHash('sha256').update(token).digest('hex');
     await SupaUsers.update(user.id, { email_verification_token: hash as any, email_verification_expires: new Date(Date.now() + 24*60*60*1000).toISOString() as any } as any);
 
-    const baseUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    const baseUrl = process.env.CLIENT_URL || 'http://localhost:5174';
     const verifyUrl = `${baseUrl}/verify-email?token=${token}&email=${encodeURIComponent(user.email)}`;
-    await sendMail({ to: user.email, subject: 'Verify your email', html: `<p>Welcome!</p><p>Click <a href="${verifyUrl}">here</a> to verify your email (expires in 24 hours).</p>` });
+    try {
+      await sendMail({ to: user.email, subject: 'Verify your email', html: `<p>Welcome!</p><p>Click <a href=\"${verifyUrl}\">here</a> to verify your email (expires in 24 hours).</p>`, category: 'verify-email' });
+    } catch (mailErr) {
+      logger.error({ err: mailErr, email: user.email }, 'Failed to send verification email');
+      // Still return success; user can retry
+    }
 
     res.status(200).json({ success: true, message: 'Verification email sent' });
   } catch (error) { next(error); }

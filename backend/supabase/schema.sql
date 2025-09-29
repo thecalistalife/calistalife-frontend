@@ -67,6 +67,8 @@ create table if not exists public.products (
   slug text unique not null,
   brand text,
   price numeric not null default 0,
+  originalPrice numeric,
+  sku text,
   images text[] not null default '{}',
   description text,
   category text,
@@ -74,6 +76,7 @@ create table if not exists public.products (
   sizes text[] not null default '{}',
   colors text[] not null default '{}',
   tags text[] not null default '{}',
+  status text not null default 'active',
   "inStock" boolean not null default true,
   "stockQuantity" int not null default 0,
   rating numeric not null default 0,
@@ -84,6 +87,88 @@ create table if not exists public.products (
   "isFeatured" boolean not null default false,
   "createdAt" timestamptz not null default now()
 );
+
+-- Add admin-friendly fields if table already existed
+alter table public.products add column if not exists originalPrice numeric;
+alter table public.products add column if not exists sku text;
+alter table public.products add column if not exists status text default 'active';
+
+-- Product images table for media management
+create table if not exists public.product_images (
+  id uuid primary key default gen_random_uuid(),
+  product_id uuid not null references public.products(id) on delete cascade,
+  url text not null,
+  alt text,
+  is_primary boolean not null default false,
+  sort_order int not null default 0,
+  meta jsonb,
+  created_at timestamptz not null default now()
+);
+create index if not exists product_images_product_idx on public.product_images(product_id);
+
+-- Product variants table for size/color/material SKUs
+create table if not exists public.product_variants (
+  id uuid primary key default gen_random_uuid(),
+  product_id uuid not null references public.products(id) on delete cascade,
+  size text,
+  color text,
+  material text,
+  sku text unique,
+  stock_quantity int not null default 0,
+  price_adjustment numeric not null default 0,
+  image_url text,
+  created_at timestamptz not null default now()
+);
+create index if not exists product_variants_product_idx on public.product_variants(product_id);
+
+-- =====================
+-- Categories
+-- =====================
+create table if not exists public.categories (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  slug text unique not null,
+  description text,
+  image_url text,
+  parent_id uuid references public.categories(id) on delete set null,
+  sort_order int default 0,
+  is_active boolean default true,
+  seo_title text,
+  seo_description text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+create index if not exists categories_parent_idx on public.categories(parent_id);
+
+create table if not exists public.product_categories (
+  product_id uuid references public.products(id) on delete cascade,
+  category_id uuid references public.categories(id) on delete cascade,
+  primary key (product_id, category_id)
+);
+create index if not exists product_categories_product_idx on public.product_categories(product_id);
+create index if not exists product_categories_category_idx on public.product_categories(category_id);
+
+-- =====================
+-- Collections (extend existing)
+-- =====================
+alter table public.collections add column if not exists banner_url text;
+alter table public.collections add column if not exists is_featured boolean default false;
+alter table public.collections add column if not exists is_active boolean default true;
+alter table public.collections add column if not exists sort_order int default 0;
+alter table public.collections add column if not exists start_date timestamptz;
+alter table public.collections add column if not exists end_date timestamptz;
+alter table public.collections add column if not exists seo_title text;
+alter table public.collections add column if not exists seo_description text;
+alter table public.collections add column if not exists updated_at timestamptz default now();
+
+create table if not exists public.product_collections (
+  product_id uuid references public.products(id) on delete cascade,
+  collection_id uuid references public.collections(id) on delete cascade,
+  sort_order int default 0,
+  primary key (product_id, collection_id)
+);
+create index if not exists product_collections_product_idx on public.product_collections(product_id);
+create index if not exists product_collections_collection_idx on public.product_collections(collection_id);
 
 -- RLS policies for collections/products (public readable)
 alter table public.collections enable row level security;
@@ -228,3 +313,69 @@ create table if not exists public.admin_activity_log (
   user_agent text,
   created_at timestamptz not null default now()
 );
+
+-- =====================
+-- Reviews system
+-- =====================
+-- Customer reviews table
+create table if not exists public.product_reviews (
+  id uuid primary key default gen_random_uuid(),
+  product_id uuid not null references public.products(id) on delete cascade,
+  user_id uuid references public.users(id) on delete set null,
+  reviewer_name varchar not null,
+  reviewer_email varchar not null,
+  rating integer not null check (rating >= 1 and rating <= 5),
+  review_title varchar(200),
+  review_text text not null,
+  verified_purchase boolean default false,
+  helpful_count integer default 0,
+  unhelpful_count integer default 0,
+  is_approved boolean default true,
+  size_purchased varchar,
+  color_purchased varchar,
+  fit_feedback varchar, -- 'too_small', 'perfect', 'too_large'
+  quality_rating integer check (quality_rating >= 1 and quality_rating <= 5),
+  comfort_rating integer check (comfort_rating >= 1 and comfort_rating <= 5),
+  style_rating integer check (style_rating >= 1 and style_rating <= 5),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- Review images table
+create table if not exists public.review_images (
+  id uuid primary key default gen_random_uuid(),
+  review_id uuid not null references public.product_reviews(id) on delete cascade,
+  image_url varchar not null,
+  image_alt varchar,
+  image_type varchar default 'customer_photo', -- 'customer_photo', 'fit_photo', 'quality_photo'
+  sort_order integer default 0,
+  created_at timestamptz not null default now()
+);
+
+-- Review helpfulness tracking
+create table if not exists public.review_helpfulness (
+  id uuid primary key default gen_random_uuid(),
+  review_id uuid not null references public.product_reviews(id) on delete cascade,
+  user_id uuid references public.users(id) on delete set null,
+  user_ip varchar,
+  is_helpful boolean not null, -- true for helpful, false for unhelpful
+  created_at timestamptz not null default now(),
+  unique(review_id, user_id),
+  unique(review_id, user_ip)
+);
+
+-- Review responses (admin responses to reviews)
+create table if not exists public.review_responses (
+  id uuid primary key default gen_random_uuid(),
+  review_id uuid not null references public.product_reviews(id) on delete cascade,
+  responder_name varchar not null default 'CalistaLife Team',
+  response_text text not null,
+  is_official boolean default true,
+  created_at timestamptz not null default now()
+);
+
+-- Indexes for performance
+create index if not exists product_reviews_product_id_idx on public.product_reviews(product_id);
+create index if not exists product_reviews_rating_idx on public.product_reviews(rating);
+create index if not exists product_reviews_created_at_idx on public.product_reviews(created_at desc);
+create index if not exists product_reviews_verified_purchase_idx on public.product_reviews(verified_purchase);

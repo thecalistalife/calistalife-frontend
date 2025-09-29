@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCartStore } from '../store';
 import { OrdersAPI, PaymentsAPI } from '../lib/api';
@@ -29,6 +29,7 @@ const PaymentSectionRazorpay = () => (
 export const Checkout = () => {
   const items = useCartStore((s) => s.items);
   const clearCart = useCartStore((s) => s.clearCart);
+  const setCartOpen = useCartStore((s) => s.setIsOpen);
   const subtotal = items.reduce((sum, it) => sum + it.product.price * it.quantity, 0);
   const shippingCost = subtotal >= 999 ? 0 : 99; // simple rule: free over 999 INR
   const tax = 0; // placeholder; integrate GST later
@@ -38,6 +39,7 @@ export const Checkout = () => {
   const [placing, setPlacing] = useState(false);
   const toast = useToast();
   const navigate = useNavigate();
+  const hasItems = items.length > 0;
   // simple local shipping form state (MVP)
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -45,6 +47,14 @@ export const Checkout = () => {
   const [city, setCity] = useState('');
   const [zip, setZip] = useState('');
   const [email, setEmail] = useState('');
+
+  // If user arrives at Review step with an empty cart, redirect to Cart with a message
+  useEffect(() => {
+    if (step === 'review' && items.length === 0) {
+      toast.error('Your cart is empty. Please add items before placing an order.');
+      navigate('/cart', { replace: true });
+    }
+  }, [step, items.length]);
 
   const validateShipping = () => {
     if (!firstName || !lastName || !address1 || !city || !zip || !email) {
@@ -69,7 +79,9 @@ export const Checkout = () => {
       const orderPayload = buildOrderPayload('cod');
       const res = await OrdersAPI.create(orderPayload);
       const data = res.data.data as any;
+      // Clear UI cart and close drawer immediately after success
       clearCart();
+      try { setCartOpen(false); } catch {}
       toast.success(`Order placed: ${data.orderNumber}`);
       navigate('/order-success', { state: { orderNumber: data.orderNumber } });
     } catch (err: any) {
@@ -142,6 +154,7 @@ export const Checkout = () => {
         order_id: rzpOrder.orderId,
         handler: (resp: any) => {
           clearCart();
+          try { setCartOpen(false); } catch {}
           toast.success(`Payment successful. Order: ${orderNumber}`);
           navigate('/order-success', { state: { orderNumber } });
         },
@@ -230,18 +243,24 @@ export const Checkout = () => {
                   <Step>
                     <h2 className="text-xl font-bold mb-4">Review & Place Order</h2>
                     <div className="space-y-3">
-                      {items.map((it) => (
-                        <div key={`${it.product.id}-${it.size}-${it.color}`} className="flex items-center justify-between text-sm">
-                          <span className="truncate">{it.product.name} × {it.quantity}</span>
-                          <span>{formatPrice(it.product.price * it.quantity)}</span>
+                      {hasItems ? (
+                        items.map((it) => (
+                          <div key={`${it.product.id}-${it.size}-${it.color}`} className="flex items-center justify-between text-sm">
+                            <span className="truncate">{it.product.name} × {it.quantity}</span>
+                            <span>{formatPrice(it.product.price * it.quantity)}</span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-3">
+                          Your cart is empty. Please add items before placing an order.
                         </div>
-                      ))}
+                      )}
                     </div>
                     <div className="mt-6 flex justify-between">
                       <button onClick={() => setStep('payment')} className="px-6 py-3 border-2 border-black rounded-lg font-bold uppercase tracking-wider hover:bg-black hover:text-white transition-all">
                         Back
                       </button>
-                      <button disabled={placing} onClick={paymentMethod==='cod' ? placeOrderCOD : placeOrderRazorpay} className="px-6 py-3 bg-black text-white rounded-lg font-bold uppercase tracking-wider hover:bg-orange-500 transition-colors disabled:opacity-50">
+                      <button disabled={placing || !hasItems} onClick={paymentMethod==='cod' ? placeOrderCOD : placeOrderRazorpay} className="px-6 py-3 bg-black text-white rounded-lg font-bold uppercase tracking-wider hover:bg-orange-500 transition-colors disabled:opacity-50">
                         {placing ? 'Processing…' : (paymentMethod==='cod' ? 'Place order' : 'Pay now')}
                       </button>
                     </div>

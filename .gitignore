@@ -23,11 +23,15 @@ dist-ssr
 *.sln
 *.sw?
 
-# Environment files
+# Environment files - All variants and locations
 .env
 .env.*
 **/.env
 **/.env.*
+!.env.example
+!.env.sample
+!**/.env.example
+!**/.env.sample
 
 # Additional tooling/build outputs
 .vercel/
@@ -41,3 +45,24 @@ coverage/
 **/node_modules/
 **/dist/
 **/build/
+
+# Sentry Config Files and Build Plugins
+.env.sentry-build-plugin
+*.sentry-build-plugin
+**/.env.sentry-build-plugin
+**/*.sentry-build-plugin
+
+# Additional Secret Files
+*.key
+*.pem
+*.p12
+*.pfx
+auth.json
+secrets.json
+config/secrets/
+*.secret
+*.credentials
+
+# CI/CD Integration Guides (contain secrets)
+scripts/ci-cd-integration-guide.md
+scripts/*-secrets.md

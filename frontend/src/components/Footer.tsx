@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Instagram, Twitter, Facebook, Mail, MapPin, Phone } from 'lucide-react';
+import { MarketingAPI } from '../lib/api';
+import { trackBrevo } from '../lib/brevoTracker';
 
 export const Footer = () => {
   return (
@@ -103,28 +105,28 @@ export const Footer = () => {
                 </Link>
               </li>
               <li>
-                <a 
-                  href="#" 
+                <Link 
+                  to="/shipping" 
                   className="text-gray-600 hover:text-orange-500 transition-colors"
                 >
                   Shipping Policy
-                </a>
+                </Link>
               </li>
               <li>
-                <a 
-                  href="#" 
+                <Link 
+                  to="/returns" 
                   className="text-gray-600 hover:text-orange-500 transition-colors"
                 >
                   Returns & Exchanges
-                </a>
+                </Link>
               </li>
               <li>
-                <a 
-                  href="#" 
+                <Link 
+                  to="/privacy" 
                   className="text-gray-600 hover:text-orange-500 transition-colors"
                 >
                   Privacy Policy
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -160,7 +162,23 @@ export const Footer = () => {
             <p className="text-gray-600 mb-6">
               Get the latest updates on new products and upcoming sales.
             </p>
-            <form className="flex gap-2">
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const form = e.currentTarget as HTMLFormElement;
+                const input = form.querySelector('input[type="email"]') as HTMLInputElement | null;
+                if (!input?.value) return;
+                try {
+                  await MarketingAPI.newsletterSubscribe({ email: input.value });
+                  try { trackBrevo('newsletter_signup', { source: 'footer' }); } catch {}
+                  input.value = '';
+                  alert('Thanks for subscribing!');
+                } catch (err: any) {
+                  alert(err?.response?.data?.message || 'Subscription failed');
+                }
+              }}
+              className="flex gap-2"
+            >
               <input
                 type="email"
                 placeholder="Your email address"

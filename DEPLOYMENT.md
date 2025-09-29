@@ -6,7 +6,7 @@
 ```bash
 npm run dev
 ```
-Development server will be available at: **http://localhost:5173/**
+Development server will be available at: **http://localhost:5174/**
 
 ### Build for Production
 ```bash
@@ -172,6 +172,6 @@ git push                   # Push to remote
 ## 🌟 Local Development URL
 
 Your development server is running at:
-**http://localhost:5173/**
+**http://localhost:5174/**
 
 Enjoy building with TheCalista! 🎉

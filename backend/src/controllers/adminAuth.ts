@@ -76,9 +76,9 @@ export const login = async (req: Request, res: Response) => {
       maxAge: MINUTES * 60 * 1000,
     })
     try { await sendMail({ to: user.email, subject: 'Admin login', html: `<p>Admin login from ${ip}</p>` }) } catch {}
-    res.status(200).json({ success: true })
+    return res.status(200).json({ success: true })
   } catch (e: any) {
-    res.status(500).json({ success: false, message: 'Server error' })
+    return res.status(500).json({ success: false, message: 'Server error' })
   }
 }
 
@@ -106,9 +106,9 @@ export const verify2fa = async (req: Request, res: Response) => {
       sameSite: 'strict',
       maxAge: MINUTES * 60 * 1000,
     })
-    res.status(200).json({ success: true })
+    return res.status(200).json({ success: true })
   } catch (e: any) {
-    res.status(500).json({ success: false, message: 'Server error' })
+    return res.status(500).json({ success: false, message: 'Server error' })
   }
 }
 
@@ -116,9 +116,9 @@ export const setup2faStart = async (req: Request, res: Response) => {
   try {
     const secret = speakeasy.generateSecret({ length: 20, name: 'CalistaLife Admin' })
     const qr = await QRCode.toDataURL(secret.otpauth_url || '')
-    res.status(200).json({ success: true, data: { base32: secret.base32, otpauthUrl: secret.otpauth_url, qr } })
+    return res.status(200).json({ success: true, data: { base32: secret.base32, otpauthUrl: secret.otpauth_url, qr } })
   } catch (e: any) {
-    res.status(500).json({ success: false, message: 'Server error' })
+    return res.status(500).json({ success: false, message: 'Server error' })
   }
 }
 
@@ -134,9 +134,9 @@ export const setup2faVerify = async (req: Request, res: Response) => {
     if (sErr) throw sErr
 
     await supabaseAdmin.from('admin_users').update({ two_factor_enabled: true, two_factor_secret: secretBase32 }).eq('id', sess.user_id)
-    res.status(200).json({ success: true })
+    return res.status(200).json({ success: true })
   } catch (e: any) {
-    res.status(500).json({ success: false, message: 'Server error' })
+    return res.status(500).json({ success: false, message: 'Server error' })
   }
 }
 
@@ -145,9 +145,9 @@ export const logout = async (req: Request, res: Response) => {
     const sid = req.cookies?.admin_session as string | undefined
     if (sid) { await supabaseAdmin.from('admin_sessions').delete().eq('id', sid) }
     res.cookie('admin_session', '', { expires: new Date(0), httpOnly: true })
-    res.status(200).json({ success: true })
+    return res.status(200).json({ success: true })
   } catch (e: any) {
-    res.status(500).json({ success: false, message: 'Server error' })
+    return res.status(500).json({ success: false, message: 'Server error' })
   }
 }
 
@@ -158,9 +158,9 @@ export const getSession = async (req: Request, res: Response) => {
     const { data: sess } = await supabaseAdmin.from('admin_sessions').select('*').eq('id', sid).single()
     if (!sess) return res.status(401).json({ success: false })
     const { data: user } = await supabaseAdmin.from('admin_users').select('id,email,role').eq('id', sess.user_id).single()
-    res.status(200).json({ success: true, data: { user } })
+    return res.status(200).json({ success: true, data: { user } })
   } catch (e: any) {
-    res.status(500).json({ success: false })
+    return res.status(500).json({ success: false })
   }
 }
 
@@ -176,8 +176,8 @@ export const lockdown = async (req: Request, res: Response) => {
 
     await supabaseAdmin.from('admin_sessions').delete().neq('id', '00000000-0000-0000-0000-000000000000')
     res.cookie('admin_session', '', { expires: new Date(0), httpOnly: true })
-    res.status(200).json({ success: true, message: 'All sessions terminated' })
+    return res.status(200).json({ success: true, message: 'All sessions terminated' })
   } catch (e: any) {
-    res.status(500).json({ success: false })
+    return res.status(500).json({ success: false })
   }
 }

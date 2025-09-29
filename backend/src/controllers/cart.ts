@@ -1,6 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { AuthRequest, ApiResponse } from '@/types';
 import { carts, wishlist } from '@/services/supabaseCart';
+import { trackCartUpdated } from '@/services/marketing';
 
 // Get user's cart
 export const getCart = async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -19,6 +20,14 @@ export const addToCart = async (req: AuthRequest, res: Response, next: NextFunct
     const userId = (req.user as any)._id || (req.user as any).id;
     const { productId, size, color, quantity = 1, price } = req.body;
     const data = await carts.addItem(userId, { productId, size, color, quantity, price });
+    try {
+      const email = (req.user as any)?.email;
+      if (email) {
+        const items = (data.items || []).map((it: any) => ({ id: it.product_id, price: it.price, qty: it.quantity }));
+        const total = items.reduce((s: number, i: any) => s + (i.price || 0) * (i.qty || 1), 0);
+        trackCartUpdated(email, { items, cartTotal: total });
+      }
+    } catch {}
     res.status(200).json({ success: true, message: 'Item added to cart successfully', data });
   } catch (error) {
     next(error);
@@ -35,6 +44,14 @@ export const updateCartItem = async (req: AuthRequest, res: Response, next: Next
       return;
     }
     const data = await carts.updateItem(userId, { productId, size, color, quantity });
+    try {
+      const email = (req.user as any)?.email;
+      if (email) {
+        const items = (data.items || []).map((it: any) => ({ id: it.product_id, price: it.price, qty: it.quantity }));
+        const total = items.reduce((s: number, i: any) => s + (i.price || 0) * (i.qty || 1), 0);
+        trackCartUpdated(email, { items, cartTotal: total });
+      }
+    } catch {}
     res.status(200).json({ success: true, message: 'Cart item updated successfully', data });
   } catch (error) {
     next(error);
@@ -47,6 +64,14 @@ export const removeFromCart = async (req: AuthRequest, res: Response, next: Next
     const userId = (req.user as any)._id || (req.user as any).id;
     const { productId, size, color } = req.body;
     const data = await carts.removeItem(userId, { productId, size, color });
+    try {
+      const email = (req.user as any)?.email;
+      if (email) {
+        const items = (data.items || []).map((it: any) => ({ id: it.product_id, price: it.price, qty: it.quantity }));
+        const total = items.reduce((s: number, i: any) => s + (i.price || 0) * (i.qty || 1), 0);
+        trackCartUpdated(email, { items, cartTotal: total });
+      }
+    } catch {}
     res.status(200).json({ success: true, message: 'Item removed from cart successfully', data });
   } catch (error) {
     next(error);
@@ -58,6 +83,12 @@ export const clearCart = async (req: AuthRequest, res: Response, next: NextFunct
   try {
     const userId = (req.user as any)._id || (req.user as any).id;
     const data = await carts.clearCart(userId);
+    try {
+      const email = (req.user as any)?.email;
+      if (email) {
+        trackCartUpdated(email, { items: [], cartTotal: 0 });
+      }
+    } catch {}
     res.status(200).json({ success: true, message: 'Cart cleared successfully', data });
   } catch (error) {
     next(error);

@@ -13,6 +13,7 @@ export default function AdminLogin({ base }: { base: string }) {
   const [error, setError] = useState<string | null>(null)
 
   const api = async (path: string, body: any) => {
+    // Use /api prefix so Vite proxies to backend; base is secret admin path
     const res = await fetch(`${import.meta.env.VITE_API_URL}/${base}${path}`, {
       method: 'POST',
       credentials: 'include',

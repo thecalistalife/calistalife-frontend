@@ -2,13 +2,25 @@ import { Request, Response, NextFunction } from 'express';
 import { validationResult } from 'express-validator';
 import rateLimit from 'express-rate-limit';
 
+import * as Sentry from '@sentry/node';
+import { config } from '@/utils/config';
+
 // Error handling middleware
 export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
   let error = { ...err };
   error.message = err.message;
 
   // Log error
-  console.error(err);
+  try {
+    const { logger } = require('@/utils/logger');
+    logger.error({ err, path: req.path }, 'Unhandled error');
+    if (config.SENTRY_DSN) {
+      Sentry.captureException(err);
+    }
+  } catch {
+    // fallback
+    console.error(err);
+  }
 
   // Mongoose bad ObjectId
   if (err.name === 'CastError') {
@@ -97,7 +109,7 @@ export const corsOptions = {
     const allowedOrigins = [
       ...fromEnv,
       'http://localhost:3000',
-      'http://localhost:5173'
+      'http://localhost:5174'
     ];
     
     if (allowedOrigins.indexOf(origin) !== -1) {

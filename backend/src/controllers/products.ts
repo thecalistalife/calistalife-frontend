@@ -32,7 +32,8 @@ export const getProducts = async (req: Request, res: Response, next: NextFunctio
     if (useSupabase) {
       let query = supabase
         .from('products')
-        .select('*', { count: 'exact' });
+        .select('*', { count: 'exact' })
+        .eq('status', 'active');
 
       if (search) {
         query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
@@ -119,6 +120,7 @@ export const getFeaturedProducts = async (req: Request, res: Response, next: Nex
       const { data, error } = await supabase
         .from('products')
         .select('*')
+        .eq('status', 'active')
         .eq('isFeatured', true)
         .order('createdAt', { ascending: false })
         .limit(parseInt(limit.toString()));
@@ -142,7 +144,7 @@ export const getNewArrivals = async (req: Request, res: Response, next: NextFunc
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .eq('isNew', true)
+        .eq('status', 'active')
         .order('createdAt', { ascending: false })
         .limit(parseInt(limit.toString()));
       if (error) throw error;
@@ -165,6 +167,7 @@ export const getBestSellers = async (req: Request, res: Response, next: NextFunc
       const { data, error } = await supabase
         .from('products')
         .select('*')
+        .eq('status', 'active')
         .eq('isBestSeller', true)
         .order('rating', { ascending: false })
         .order('reviews', { ascending: false })
@@ -187,7 +190,7 @@ export const getProductsByCategory = async (req: Request, res: Response, next: N
     const { page = 1, limit = 12, sortBy = 'featured' } = req.query;
 
     {
-      let query = supabase.from('products').select('*', { count: 'exact' }).eq('category', category);
+      let query = supabase.from('products').select('*', { count: 'exact' }).eq('category', category).eq('status', 'active');
       switch (sortBy) {
         case 'newest': query = query.order('createdAt', { ascending: false }); break;
         case 'price-low': query = query.order('price', { ascending: true }); break;

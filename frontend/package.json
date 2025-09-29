@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
+    "@sentry/react": "^8.27.0",
     "@tailwindcss/vite": "^4.1.13",
     "@tanstack/react-query": "^5.89.0",
     "axios": "^1.7.9",
@@ -24,6 +25,9 @@
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.9.1",
     "tailwindcss": "^4.1.13",
+    "thecalista": "file:..",
+    "thecalista-frontend": "file:",
+    "web-vitals": "^4.2.4",
     "zustand": "^5.0.8"
   },
   "devDependencies": {

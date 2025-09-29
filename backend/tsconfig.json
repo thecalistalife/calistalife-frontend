@@ -25,6 +25,10 @@
     "paths": {
       "@/*": ["src/*"]
     },
+    "typeRoots": [
+      "./src/types",
+      "./node_modules/@types"
+    ],
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true

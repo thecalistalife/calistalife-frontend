@@ -86,6 +86,16 @@ export const ProductCard = ({ product, className }: ProductCardProps) => {
           
           {/* Badges */}
           <div className="absolute top-4 left-4 flex flex-col gap-2">
+            {(product as any).quality_grade === 'premium' && (
+              <span className="bg-purple-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                Premium
+              </span>
+            )}
+            {(product as any).sustainability_rating && ['A+', 'A'].includes((product as any).sustainability_rating) && (
+              <span className="bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-full">
+                Eco {(product as any).sustainability_rating}
+              </span>
+            )}
             {product.isNew && (
               <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full">
                 New
@@ -144,6 +154,27 @@ className="absolute bottom-4 left-4 right-4 bg-black text-white py-3 font-bold u
             {renderStars(product.rating)}
             <span className="ml-2 text-sm text-gray-600">({product.reviews})</span>
           </div>
+          
+          {/* Quality Indicators */}
+          {((product as any).quality_grade || (product as any).sustainability_rating || (product as any).durability_score) && (
+            <div className="flex flex-wrap gap-2 mb-2">
+              {(product as any).quality_grade && (
+                <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
+                  {(product as any).quality_grade} quality
+                </span>
+              )}
+              {(product as any).sustainability_rating && (
+                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+                  {(product as any).sustainability_rating} sustainable
+                </span>
+              )}
+              {(product as any).durability_score && (
+                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                  {(product as any).durability_score}/10 durable
+                </span>
+              )}
+            </div>
+          )}
           
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">

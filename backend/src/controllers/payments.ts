@@ -114,7 +114,7 @@ export const handleRazorpayWebhook = async (req: Request, res: Response, next: N
     if (orderEntity?.receipt) {
       const orderNumber = orderEntity.receipt as string;
       // Update order record by order_number
-      const updates: any = { payment_status: 'paid', razorpay_order_id: orderEntity.id };
+      const updates: any = { payment_status: 'paid', order_status: 'confirmed', razorpay_order_id: orderEntity.id };
       if (paymentEntity?.id) updates.razorpay_payment_id = paymentEntity.id;
       const { supabaseAdmin } = await import('@/utils/supabase');
       await supabaseAdmin
@@ -122,21 +122,24 @@ export const handleRazorpayWebhook = async (req: Request, res: Response, next: N
         .update(updates)
         .eq('order_number', orderNumber);
 
-      // Send payment confirmation email if we can infer recipient (lookup order + shipping email)
+      // Send order confirmation email using template and schedule processing
       try {
         const { data: orderRow } = await supabaseAdmin
           .from('orders')
           .select('*')
           .eq('order_number', orderNumber)
           .single();
-        const toEmail = (orderRow as any)?.shipping_address?.email as string | undefined;
-        if (toEmail) {
-          const { sendMail } = await import('@/utils/email');
-          await sendMail({
-            to: toEmail,
-            subject: `Payment confirmed: ${orderNumber}`,
-            html: `<p>Your payment has been received.</p><p>Order <b>${orderNumber}</b> is now confirmed.</p>`
-          });
+        if (orderRow) {
+          const { sendOrderEmail } = await import('@/services/orderEmailService');
+          const { persistentEmailQueue } = await import('@/services/persistentEmailQueue');
+          await sendOrderEmail('confirmed', { order: orderRow });
+          
+          // Schedule processing email
+          const runAt = new Date(Date.now() + 90 * 60 * 1000);
+          const recipientEmail = orderRow.shipping_address?.email || orderRow.billing_address?.email;
+          if (recipientEmail) {
+            await persistentEmailQueue.schedule(orderNumber, 'processing', recipientEmail, runAt);
+          }
         }
       } catch (e) {
         console.log('Payment email notify failed:', (e as any)?.message);

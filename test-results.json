@@ -1,0 +1,127 @@
+{
+  "timestamp": "2025-09-28T11:51:54.385Z",
+  "results": {
+    "manifest": [
+      {
+        "message": "Manifest file accessible",
+        "status": "PASS",
+        "timestamp": "2025-09-28T11:51:52.041Z"
+      },
+      {
+        "message": "Missing fields: name, short_name, start_url, display",
+        "status": "FAIL",
+        "timestamp": "2025-09-28T11:51:52.043Z"
+      }
+    ],
+    "images": [
+      {
+        "message": "Invalid image URL correctly fails",
+        "status": "PASS",
+        "timestamp": "2025-09-28T11:51:54.337Z"
+      },
+      {
+        "message": "2/2 valid images accessible",
+        "status": "PASS",
+        "timestamp": "2025-09-28T11:51:54.338Z"
+      },
+      {
+        "message": "Frontend accessible for image testing",
+        "status": "PASS",
+        "timestamp": "2025-09-28T11:51:54.352Z"
+      }
+    ],
+    "api": [
+      {
+        "message": "Health endpoint failed",
+        "status": "FAIL",
+        "timestamp": "2025-09-28T11:51:54.360Z"
+      }
+    ],
+    "components": [
+      {
+        "message": "Component exists: EnhancedProductReviews.tsx",
+        "status": "PASS",
+        "timestamp": "2025-09-28T11:51:54.361Z"
+      },
+      {
+        "message": "useCallback implemented: EnhancedProductReviews.tsx",
+        "status": "PASS",
+        "timestamp": "2025-09-28T11:51:54.361Z"
+      },
+      {
+        "message": "Dependency arrays present: EnhancedProductReviews.tsx",
+        "status": "PASS",
+        "timestamp": "2025-09-28T11:51:54.362Z"
+      },
+      {
+        "message": "Component exists: ProductRecommendations.tsx",
+        "status": "PASS",
+        "timestamp": "2025-09-28T11:51:54.362Z"
+      },
+      {
+        "message": "useCallback implemented: ProductRecommendations.tsx",
+        "status": "PASS",
+        "timestamp": "2025-09-28T11:51:54.363Z"
+      },
+      {
+        "message": "Dependency arrays present: ProductRecommendations.tsx",
+        "status": "PASS",
+        "timestamp": "2025-09-28T11:51:54.363Z"
+      },
+      {
+        "message": "Component exists: ErrorBoundary.tsx",
+        "status": "PASS",
+        "timestamp": "2025-09-28T11:51:54.363Z"
+      },
+      {
+        "message": "Missing useCallback: ErrorBoundary.tsx",
+        "status": "WARN",
+        "timestamp": "2025-09-28T11:51:54.364Z"
+      },
+      {
+        "message": "Missing dependency arrays: ErrorBoundary.tsx",
+        "status": "WARN",
+        "timestamp": "2025-09-28T11:51:54.364Z"
+      },
+      {
+        "message": "Component exists: ImageWithFallback.tsx",
+        "status": "PASS",
+        "timestamp": "2025-09-28T11:51:54.364Z"
+      },
+      {
+        "message": "Missing useCallback: ImageWithFallback.tsx",
+        "status": "WARN",
+        "timestamp": "2025-09-28T11:51:54.365Z"
+      },
+      {
+        "message": "Missing dependency arrays: ImageWithFallback.tsx",
+        "status": "WARN",
+        "timestamp": "2025-09-28T11:51:54.365Z"
+      }
+    ],
+    "performance": [
+      {
+        "message": "Frontend load time: 8ms",
+        "status": "PASS",
+        "timestamp": "2025-09-28T11:51:54.373Z"
+      },
+      {
+        "message": "Performance test failed: Error",
+        "status": "FAIL",
+        "timestamp": "2025-09-28T11:51:54.376Z"
+      }
+    ],
+    "errors": [],
+    "summary": {
+      "total": 20,
+      "passed": 13,
+      "failed": 3,
+      "warnings": 4
+    }
+  },
+  "environment": {
+    "frontend": "http://localhost:5174",
+    "backend": "http://localhost:3001",
+    "node_version": "v22.19.0"
+  }
+}

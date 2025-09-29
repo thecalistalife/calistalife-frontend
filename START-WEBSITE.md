@@ -48,7 +48,7 @@ npm run dev
 ```
 VITE v7.1.6  ready in 1894 ms
 
-➜  Local:   http://localhost:5173/
+➜  Local:   http://localhost:5174/
 ➜  Network: use --host to expose
 ```
 
@@ -56,7 +56,7 @@ VITE v7.1.6  ready in 1894 ms
 
 Once both servers are running:
 
-- **Frontend (Website)**: http://localhost:5173
+- **Frontend (Website)**: http://localhost:5174
 - **Backend API**: http://localhost:3001
 - **API Health Check**: http://localhost:3001/api/health
 - **API Status**: http://localhost:3001/api/status
@@ -67,7 +67,7 @@ Once both servers are running:
 1. **Backend Check**: Visit http://localhost:3001/api/health
    - Should return JSON with "success": true
 
-2. **Frontend Check**: Visit http://localhost:5173
+2. **Frontend Check**: Visit http://localhost:5174
    - Should show TheCalista website
 
 3. **API Integration**: Check if frontend can fetch data from backend
@@ -80,7 +80,7 @@ Once both servers are running:
 - **Supabase connection issues**: Check the Supabase credentials in `backend/.env`
 
 ### Frontend Issues
-- **Port 5173 already in use**: Vite will automatically try the next available port
+- **Port 5174 already in use**: Vite will automatically try the next available port
 - **API connection issues**: Ensure backend is running on port 3001
 
 ### Common Solutions
@@ -102,7 +102,7 @@ thecalista/
 
 The project is configured with:
 - **Backend Port**: 3001 (configurable in backend/.env)
-- **Frontend Port**: 5173 (auto-assigned by Vite)
+- **Frontend Port**: 5174 (auto-assigned by Vite)
 - **Database**: Supabase (configured with provided credentials)
 - **AI Features**: Gemini AI enabled
 - **OAuth**: Google OAuth configured but disabled by default

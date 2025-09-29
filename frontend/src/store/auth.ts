@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { AuthAPI } from '../lib/api';
+import { mergeLocalToServer, loadServerToStore, clearLocalCart } from '../lib/cartSync';
 
 export type AuthUser = {
   _id: string;
@@ -34,7 +35,7 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       loading: false,
       error: null,
-      async login(email, password) {
+async login(email, password) {
         set({ loading: true, error: null });
         try {
           const res = await AuthAPI.login({ email, password });
@@ -44,12 +45,16 @@ export const useAuthStore = create<AuthState>()(
             try { localStorage.setItem('auth_token', token); } catch {}
           }
           set({ user, token, loading: false });
+          // Merge guest cart into server and load server cart
+          if (token) {
+            try { await mergeLocalToServer(); } catch {}
+          }
         } catch (err: any) {
           set({ error: err?.response?.data?.message ?? 'Login failed', loading: false });
           throw err;
         }
       },
-      async register(name, email, password) {
+async register(name, email, password) {
         set({ loading: true, error: null });
         try {
           const res = await AuthAPI.register({ name, email, password });
@@ -59,12 +64,15 @@ export const useAuthStore = create<AuthState>()(
             try { localStorage.setItem('auth_token', token); } catch {}
           }
           set({ user, token, loading: false });
+          if (token) {
+            try { await mergeLocalToServer(); } catch {}
+          }
         } catch (err: any) {
           set({ error: err?.response?.data?.message ?? 'Registration failed', loading: false });
           throw err;
         }
       },
-      async googleLogin(idToken) {
+async googleLogin(idToken) {
         set({ loading: true, error: null });
         try {
           const res = await AuthAPI.googleLogin({ idToken });
@@ -74,6 +82,9 @@ export const useAuthStore = create<AuthState>()(
             try { localStorage.setItem('auth_token', token); } catch {}
           }
           set({ user, token, loading: false });
+          if (token) {
+            try { await mergeLocalToServer(); } catch {}
+          }
         } catch (err: any) {
           set({ error: err?.response?.data?.message ?? 'Google login failed', loading: false });
           throw err;
@@ -141,18 +152,22 @@ export const useAuthStore = create<AuthState>()(
           throw err;
         }
       },
-      async fetchMe() {
+async fetchMe() {
         try {
           const res = await AuthAPI.me();
           const user = res.data.data as any;
           set({ user });
+          if (user) {
+            try { await loadServerToStore(); } catch {}
+          }
         } catch {
           // ignore; user may be unauthenticated
         }
       },
-      async logout() {
+async logout() {
         try { await AuthAPI.logout(); } catch {}
         try { localStorage.removeItem('auth_token'); } catch {}
+        try { clearLocalCart(); } catch {}
         set({ user: null, token: null });
       },
     }),

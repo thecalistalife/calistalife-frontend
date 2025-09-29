@@ -10,7 +10,7 @@ TheCalista is a full-stack e-commerce application for a streetwear brand. The fr
 
 ### Frontend Development
 ```bash
-# Start frontend development server (runs on http://localhost:5173)
+# Start frontend development server (runs on http://localhost:5174)
 npm run dev
 
 # Build for production

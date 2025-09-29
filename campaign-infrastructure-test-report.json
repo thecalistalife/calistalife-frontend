@@ -1,0 +1,341 @@
+{
+  "summary": {
+    "total": 55,
+    "passed": 48,
+    "failed": 7,
+    "successRate": 87.3,
+    "timestamp": "2025-09-28T13:33:28.948Z"
+  },
+  "tests": [
+    {
+      "name": "File exists: frontend/src/lib/analytics.ts",
+      "passed": true,
+      "details": "15KB",
+      "timestamp": "2025-09-28T13:33:25.052Z"
+    },
+    {
+      "name": "File exists: frontend/src/lib/utm-tracker.ts",
+      "passed": true,
+      "details": "13KB",
+      "timestamp": "2025-09-28T13:33:25.054Z"
+    },
+    {
+      "name": "File exists: frontend/src/lib/marketing-campaigns.ts",
+      "passed": true,
+      "details": "14KB",
+      "timestamp": "2025-09-28T13:33:25.054Z"
+    },
+    {
+      "name": "File exists: frontend/src/lib/marketing-monitoring.ts",
+      "passed": true,
+      "details": "16KB",
+      "timestamp": "2025-09-28T13:33:25.054Z"
+    },
+    {
+      "name": "File exists: frontend/src/lib/marketing-reports.ts",
+      "passed": true,
+      "details": "22KB",
+      "timestamp": "2025-09-28T13:33:25.055Z"
+    },
+    {
+      "name": "File exists: frontend/src/lib/analytics-testing.ts",
+      "passed": true,
+      "details": "15KB",
+      "timestamp": "2025-09-28T13:33:25.056Z"
+    },
+    {
+      "name": "File exists: frontend/src/components/CampaignDashboard.tsx",
+      "passed": true,
+      "details": "18KB",
+      "timestamp": "2025-09-28T13:33:25.057Z"
+    },
+    {
+      "name": "File exists: frontend/src/components/AnalyticsTracker.tsx",
+      "passed": true,
+      "details": "2KB",
+      "timestamp": "2025-09-28T13:33:25.057Z"
+    },
+    {
+      "name": "File exists: frontend/src/components/ErrorBoundary.tsx",
+      "passed": false,
+      "details": "File not found",
+      "timestamp": "2025-09-28T13:33:25.058Z"
+    },
+    {
+      "name": "File exists: campaigns/campaign-rollout-plan.md",
+      "passed": true,
+      "details": "13KB",
+      "timestamp": "2025-09-28T13:33:25.058Z"
+    },
+    {
+      "name": "File exists: frontend/.env.example",
+      "passed": true,
+      "details": "1KB",
+      "timestamp": "2025-09-28T13:33:25.059Z"
+    },
+    {
+      "name": "Frontend TypeScript Compilation",
+      "passed": true,
+      "details": "No compilation errors",
+      "timestamp": "2025-09-28T13:33:28.899Z"
+    },
+    {
+      "name": "GA4 Integration Present",
+      "passed": true,
+      "details": "Google Analytics 4 code found",
+      "timestamp": "2025-09-28T13:33:28.900Z"
+    },
+    {
+      "name": "Facebook Pixel Integration Present",
+      "passed": true,
+      "details": "Facebook Pixel code found",
+      "timestamp": "2025-09-28T13:33:28.901Z"
+    },
+    {
+      "name": "Google Ads Integration Present",
+      "passed": true,
+      "details": "Google Ads conversion tracking found",
+      "timestamp": "2025-09-28T13:33:28.901Z"
+    },
+    {
+      "name": "Quality-Focused Tracking Present",
+      "passed": true,
+      "details": "Quality metrics tracking found",
+      "timestamp": "2025-09-28T13:33:28.901Z"
+    },
+    {
+      "name": "Influencer Tracking Present",
+      "passed": false,
+      "details": "Influencer attribution code found",
+      "timestamp": "2025-09-28T13:33:28.901Z"
+    },
+    {
+      "name": "UTM Parameter Parsing",
+      "passed": true,
+      "details": "UTM parameter extraction code found",
+      "timestamp": "2025-09-28T13:33:28.902Z"
+    },
+    {
+      "name": "Influencer Code Recognition",
+      "passed": true,
+      "details": "Influencer tracking codes found",
+      "timestamp": "2025-09-28T13:33:28.903Z"
+    },
+    {
+      "name": "Commission Calculation",
+      "passed": false,
+      "details": "Commission tracking logic found",
+      "timestamp": "2025-09-28T13:33:28.903Z"
+    },
+    {
+      "name": "Attribution Persistence",
+      "passed": true,
+      "details": "Attribution storage code found",
+      "timestamp": "2025-09-28T13:33:28.903Z"
+    },
+    {
+      "name": "Welcome Email Automation",
+      "passed": true,
+      "details": "Welcome email template found",
+      "timestamp": "2025-09-28T13:33:28.905Z"
+    },
+    {
+      "name": "Abandoned Cart Recovery",
+      "passed": false,
+      "details": "Multi-stage cart recovery found",
+      "timestamp": "2025-09-28T13:33:28.905Z"
+    },
+    {
+      "name": "Order Confirmation with Quality Info",
+      "passed": false,
+      "details": "Quality-focused order emails found",
+      "timestamp": "2025-09-28T13:33:28.906Z"
+    },
+    {
+      "name": "Quality Care Guide Emails",
+      "passed": false,
+      "details": "Care instruction automation found",
+      "timestamp": "2025-09-28T13:33:28.906Z"
+    },
+    {
+      "name": "Brevo Email Service Integration",
+      "passed": true,
+      "details": "Email service integration found",
+      "timestamp": "2025-09-28T13:33:28.906Z"
+    },
+    {
+      "name": "Sentry Error Tracking",
+      "passed": true,
+      "details": "Sentry integration found",
+      "timestamp": "2025-09-28T13:33:28.907Z"
+    },
+    {
+      "name": "Performance Monitoring",
+      "passed": true,
+      "details": "Performance tracking found",
+      "timestamp": "2025-09-28T13:33:28.907Z"
+    },
+    {
+      "name": "Threshold-Based Alerting",
+      "passed": true,
+      "details": "Alert threshold system found",
+      "timestamp": "2025-09-28T13:33:28.907Z"
+    },
+    {
+      "name": "Analytics Error Monitoring",
+      "passed": true,
+      "details": "Analytics failure tracking found",
+      "timestamp": "2025-09-28T13:33:28.908Z"
+    },
+    {
+      "name": "Real-time Monitoring",
+      "passed": true,
+      "details": "Live monitoring system found",
+      "timestamp": "2025-09-28T13:33:28.908Z"
+    },
+    {
+      "name": "Scheduled Report Generation",
+      "passed": true,
+      "details": "Automated reporting found",
+      "timestamp": "2025-09-28T13:33:28.909Z"
+    },
+    {
+      "name": "Customer Segmentation Reporting",
+      "passed": true,
+      "details": "Quality segment reporting found",
+      "timestamp": "2025-09-28T13:33:28.910Z"
+    },
+    {
+      "name": "Campaign Attribution Reporting",
+      "passed": true,
+      "details": "Attribution analysis found",
+      "timestamp": "2025-09-28T13:33:28.910Z"
+    },
+    {
+      "name": "Influencer Performance Reports",
+      "passed": true,
+      "details": "Influencer analytics found",
+      "timestamp": "2025-09-28T13:33:28.910Z"
+    },
+    {
+      "name": "Email Report Delivery",
+      "passed": true,
+      "details": "Report distribution found",
+      "timestamp": "2025-09-28T13:33:28.910Z"
+    },
+    {
+      "name": "Real-time Metrics Display",
+      "passed": true,
+      "details": "Live dashboard features found",
+      "timestamp": "2025-09-28T13:33:28.911Z"
+    },
+    {
+      "name": "Influencer Performance Dashboard",
+      "passed": true,
+      "details": "Influencer tracking UI found",
+      "timestamp": "2025-09-28T13:33:28.911Z"
+    },
+    {
+      "name": "Quality Metrics Dashboard",
+      "passed": true,
+      "details": "Quality-focused KPIs found",
+      "timestamp": "2025-09-28T13:33:28.911Z"
+    },
+    {
+      "name": "Live Alerts Display",
+      "passed": false,
+      "details": "Alert notification UI found",
+      "timestamp": "2025-09-28T13:33:28.912Z"
+    },
+    {
+      "name": "Analytics Testing Integration",
+      "passed": true,
+      "details": "Testing UI integration found",
+      "timestamp": "2025-09-28T13:33:28.912Z"
+    },
+    {
+      "name": "Phased Rollout Strategy",
+      "passed": true,
+      "details": "Multi-phase campaign plan found",
+      "timestamp": "2025-09-28T13:33:28.913Z"
+    },
+    {
+      "name": "Influencer Coordination Plan",
+      "passed": true,
+      "details": "Influencer strategy documented",
+      "timestamp": "2025-09-28T13:33:28.913Z"
+    },
+    {
+      "name": "Success Metrics Definition",
+      "passed": true,
+      "details": "Performance targets defined",
+      "timestamp": "2025-09-28T13:33:28.913Z"
+    },
+    {
+      "name": "Quality-Focused Messaging",
+      "passed": true,
+      "details": "Quality positioning strategy found",
+      "timestamp": "2025-09-28T13:33:28.913Z"
+    },
+    {
+      "name": "Risk Management Plan",
+      "passed": true,
+      "details": "Risk mitigation strategies found",
+      "timestamp": "2025-09-28T13:33:28.913Z"
+    },
+    {
+      "name": "Analytics Environment Variables",
+      "passed": true,
+      "details": "Analytics config vars found",
+      "timestamp": "2025-09-28T13:33:28.914Z"
+    },
+    {
+      "name": "Sentry Configuration",
+      "passed": true,
+      "details": "Error tracking config found",
+      "timestamp": "2025-09-28T13:33:28.914Z"
+    },
+    {
+      "name": "Performance Monitoring Config",
+      "passed": true,
+      "details": "Performance config found",
+      "timestamp": "2025-09-28T13:33:28.914Z"
+    },
+    {
+      "name": "Debug Configuration",
+      "passed": true,
+      "details": "Debug settings found",
+      "timestamp": "2025-09-28T13:33:28.915Z"
+    },
+    {
+      "name": "Analytics Initialization in App",
+      "passed": true,
+      "details": "Analytics startup code found",
+      "timestamp": "2025-09-28T13:33:28.915Z"
+    },
+    {
+      "name": "Error Boundary Integration",
+      "passed": true,
+      "details": "Error handling wrapper found",
+      "timestamp": "2025-09-28T13:33:28.915Z"
+    },
+    {
+      "name": "Analytics Tracker Component",
+      "passed": true,
+      "details": "Route tracking component found",
+      "timestamp": "2025-09-28T13:33:28.916Z"
+    },
+    {
+      "name": "Sentry Initialization",
+      "passed": true,
+      "details": "Error tracking initialization found",
+      "timestamp": "2025-09-28T13:33:28.916Z"
+    },
+    {
+      "name": "Backend Sentry Integration: backend/src/middleware/sentry.ts",
+      "passed": true,
+      "details": "Sentry middleware found",
+      "timestamp": "2025-09-28T13:33:28.918Z"
+    }
+  ]
+}
