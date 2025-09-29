@@ -1,5 +1,6 @@
 // Marketing analytics and conversion tracking for CalistaLife.com
 import { trackEcommerce } from './sentry';
+import { config } from './config';
 
 // Google Analytics 4 configuration
 declare global {
@@ -52,16 +53,16 @@ class AnalyticsManager {
     
     if (this.isDebug) {
       console.log('🎯 Analytics initialized:', {
-        ga4: !!import.meta.env.VITE_GA4_MEASUREMENT_ID,
-        fbPixel: !!import.meta.env.VITE_FACEBOOK_PIXEL_ID,
-        googleAds: !!import.meta.env.VITE_GOOGLE_ADS_ID,
+        ga4: !!config.ga4MeasurementId,
+        fbPixel: !!config.facebookPixelId,
+        googleAds: !!config.googleAdsId,
       });
     }
   }
 
   // Initialize Google Analytics 4
   private initGoogleAnalytics() {
-    const measurementId = import.meta.env.VITE_GA4_MEASUREMENT_ID;
+    const measurementId = config.ga4MeasurementId;
     if (!measurementId) return;
 
     // Load Google Analytics script
@@ -99,7 +100,7 @@ class AnalyticsManager {
 
   // Initialize Facebook Pixel
   private initFacebookPixel() {
-    const pixelId = import.meta.env.VITE_FACEBOOK_PIXEL_ID;
+    const pixelId = config.facebookPixelId;
     if (!pixelId) return;
 
     // Facebook Pixel Code
@@ -131,7 +132,7 @@ class AnalyticsManager {
 
   // Initialize Google Ads conversion tracking
   private initGoogleAds() {
-    const googleAdsId = import.meta.env.VITE_GOOGLE_ADS_ID;
+    const googleAdsId = config.googleAdsId;
     if (!googleAdsId) return;
 
     // Google Ads conversion tracking
@@ -146,8 +147,8 @@ class AnalyticsManager {
     const title = pageTitle || document.title;
 
     // Google Analytics
-    if (window.gtag) {
-      window.gtag('config', import.meta.env.VITE_GA4_MEASUREMENT_ID, {
+    if (window.gtag && config.ga4MeasurementId) {
+      window.gtag('config', config.ga4MeasurementId, {
         page_path: path,
         page_title: title,
       });
@@ -446,8 +447,8 @@ class AnalyticsManager {
     if (!this.isInitialized) return;
 
     // Google Analytics user properties
-    if (window.gtag) {
-      window.gtag('config', import.meta.env.VITE_GA4_MEASUREMENT_ID, {
+    if (window.gtag && config.ga4MeasurementId) {
+      window.gtag('config', config.ga4MeasurementId, {
         user_properties: {
           quality_preference: properties.preferred_quality_grade,
           sustainability_focused: properties.sustainability_focus,
@@ -481,8 +482,8 @@ class AnalyticsManager {
     if (!this.isInitialized) return;
 
     // Google Analytics campaign tracking
-    if (window.gtag) {
-      window.gtag('config', import.meta.env.VITE_GA4_MEASUREMENT_ID, {
+    if (window.gtag && config.ga4MeasurementId) {
+      window.gtag('config', config.ga4MeasurementId, {
         campaign_source: campaignData.source,
         campaign_medium: campaignData.medium,
         campaign_name: campaignData.campaign,

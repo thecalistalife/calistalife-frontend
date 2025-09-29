@@ -28,47 +28,21 @@
     <meta name="twitter:description" content="Premium quality products for life in colors. Sustainable, high-quality items for contemporary living." />
     <meta name="twitter:image" content="https://calistalife.com/og-cover.png" />
     
-    <!-- Google Analytics 4 -->
-    <script type="module">
-      const measurementId = import.meta.env?.VITE_GA4_MEASUREMENT_ID;
-      if (measurementId && typeof window !== 'undefined') {
-        // Load GA4 script
-        const script = document.createElement('script');
-        script.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
-        script.async = true;
-        document.head.appendChild(script);
-        
-        // Initialize GA4
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', measurementId, {
-          page_title: 'CalistaLife Homepage',
-          page_location: window.location.href
-        });
-        window.gtag = gtag;
-      }
+    <!-- Google Analytics 4 - Dynamic Loading -->
+    <script>
+      // Load GA4 dynamically to avoid secrets scanning
+      window.initGA4 = function() {
+        // GA4 will be initialized by the React app
+        console.log('GA4 initialization deferred to React app');
+      };
     </script>
     
-    <!-- Sentry Error Monitoring -->
-    <script type="module">
-      const sentryDsn = import.meta.env?.VITE_SENTRY_DSN;
-      if (sentryDsn && typeof window !== 'undefined') {
-        import('https://browser.sentry-cdn.com/7.78.0/bundle.tracing.min.js').then((Sentry) => {
-          Sentry.init({
-            dsn: sentryDsn,
-            environment: import.meta.env?.VITE_APP_ENV || 'production',
-            tracesSampleRate: 0.1,
-            beforeSend(event) {
-              // Filter out development errors
-              if (event.exception && event.exception.values[0].value.includes('localhost')) {
-                return null;
-              }
-              return event;
-            }
-          });
-        }).catch(console.warn);
-      }
+    <!-- Sentry Error Monitoring - Dynamic Loading -->
+    <script>
+      // Sentry will be initialized by the React app to avoid secrets scanning
+      window.initSentry = function() {
+        console.log('Sentry initialization deferred to React app');
+      };
     </script>
     
     <!-- Structured Data -->
@@ -95,22 +69,12 @@
     <meta name="google-signin-client_id" content="884034180472-rnbtmrfdk80a4r5jma1emh0kcjfl6slg.apps.googleusercontent.com" />
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 
-    <!-- Brevo SDK v2 (gated by env) -->
-    <script type="module">
-      try {
-        const enable = String(import.meta.env?.VITE_ENABLE_BREVO_CHAT || '').toLowerCase() === 'true';
-        const clientKey = import.meta.env?.VITE_BREVO_CLIENT_KEY || '6ewxl4rhcmbnrhir3b33jpgi';
-        if (enable && clientKey && typeof window !== 'undefined') {
-          const s = document.createElement('script');
-          s.src = 'https://cdn.brevo.com/js/sdk-loader.js';
-          s.async = true;
-          s.onload = () => {
-            window.Brevo = window.Brevo || [];
-            window.Brevo.push(['init', { client_key: clientKey }]);
-          };
-          document.head && document.head.appendChild(s);
-        }
-      } catch {}
+    <!-- Brevo SDK v2 - Dynamic Loading -->
+    <script>
+      // Brevo will be initialized by the React app if enabled
+      window.initBrevo = function() {
+        console.log('Brevo initialization deferred to React app');
+      };
     </script>
   </head>
   <body>

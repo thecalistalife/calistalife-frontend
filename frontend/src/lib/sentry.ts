@@ -6,12 +6,13 @@ import {
   createRoutesFromChildren,
   matchRoutes 
 } from 'react-router-dom';
+import { config } from './config';
 
 // Sentry configuration for CalistaLife.com
 export const initSentry = () => {
   Sentry.init({
-    dsn: import.meta.env.VITE_SENTRY_DSN, // Add to .env files
-    environment: import.meta.env.PROD ? 'production' : 'development',
+    dsn: config.sentryDsn,
+    environment: config.appEnv,
     
     // Performance Monitoring
     integrations: [
