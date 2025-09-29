@@ -1,0 +1,18 @@
+{
+  "timestamp": "2025-09-29T12:59:33.371Z",
+  "campaign": "CalistaLife Soft Launch",
+  "budget": {
+    "total": 2500,
+    "daily": 178.57142857142858,
+    "facebook_daily": 107,
+    "google_daily": 71
+  },
+  "targets": {
+    "targetCAC": 35,
+    "targetROAS": 3.5,
+    "targetConversionRate": 0.025,
+    "targetEmailDeliverability": 0.95
+  },
+  "duration": "14 days",
+  "status": "ready_for_launch"
+}

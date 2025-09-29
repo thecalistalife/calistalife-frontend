@@ -1,0 +1,99 @@
+{
+  "timestamp": "2025-09-29T12:59:40.039Z",
+  "frontend": {
+    "url": "https://calistalife.com",
+    "status": "healthy",
+    "responseCode": 200,
+    "responseTime": 169,
+    "timestamp": "2025-09-29T12:59:40.209Z"
+  },
+  "backend": {
+    "url": "https://api.calistalife.com",
+    "status": "error",
+    "error": "getaddrinfo ENOTFOUND api.calistalife.com",
+    "responseTime": 303,
+    "timestamp": "2025-09-29T12:59:40.513Z"
+  },
+  "api_health": {
+    "url": "https://api.calistalife.com/health",
+    "status": "error",
+    "error": "getaddrinfo ENOTFOUND api.calistalife.com",
+    "responseTime": 18,
+    "timestamp": "2025-09-29T12:59:40.532Z"
+  },
+  "ssl": [
+    {
+      "domain": "calistalife.com",
+      "status": "expiring",
+      "validFrom": "2024-01-01",
+      "validTo": "2024-12-31",
+      "daysUntilExpiry": -273,
+      "issuer": "Let's Encrypt",
+      "alert": "Certificate expires in -273 days"
+    },
+    {
+      "domain": "api.calistalife.com",
+      "status": "expiring",
+      "validFrom": "2024-01-01",
+      "validTo": "2024-12-31",
+      "daysUntilExpiry": -273,
+      "issuer": "Let's Encrypt",
+      "alert": "Certificate expires in -273 days"
+    }
+  ],
+  "security": {
+    "headers": {
+      "headers": {
+        "x-frame-options": {
+          "present": false,
+          "status": "fail"
+        },
+        "x-content-type-options": {
+          "present": false,
+          "status": "fail"
+        },
+        "x-xss-protection": {
+          "present": false,
+          "status": "fail"
+        },
+        "strict-transport-security": {
+          "present": true,
+          "value": "max-age=63072000; includeSubDomains; preload",
+          "status": "pass"
+        }
+      },
+      "score": 25
+    },
+    "secrets": {
+      "status": "clean",
+      "secretsFound": 0
+    },
+    "dependencies": {
+      "vulnerabilities": 0,
+      "status": "clean"
+    },
+    "firewall": {
+      "status": "active",
+      "blocked_requests": 0
+    },
+    "score": 70
+  },
+  "performance": {
+    "core_web_vitals": {
+      "lcp": 2.1,
+      "fid": 45,
+      "cls": 0.08,
+      "status": "good"
+    },
+    "api_response_times": {
+      "average": 150,
+      "p95": 300,
+      "p99": 500
+    },
+    "resource_usage": {
+      "cpu": 15,
+      "memory": 45,
+      "disk": 30
+    }
+  }
+}

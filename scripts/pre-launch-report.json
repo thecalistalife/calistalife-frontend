@@ -1,0 +1,38 @@
+{
+  "timestamp": "2025-09-29T13:45:33.959Z",
+  "overall_score": 60,
+  "status": "CRITICAL_ISSUES",
+  "checks": {
+    "git": {
+      "status": "warning",
+      "score": 50,
+      "message": "Uncommitted changes - run git add . && git commit && git push"
+    },
+    "environment": {
+      "status": "failed",
+      "score": 100,
+      "message": "Missing: VITE_GA4_MEASUREMENT_ID, VITE_SENTRY_DSN"
+    },
+    "backend": {
+      "status": "failed",
+      "score": 0,
+      "message": "Backend not accessible: getaddrinfo ENOTFOUND api.calistalife.com"
+    },
+    "ssl": {
+      "status": "failed",
+      "score": 50,
+      "message": "Issues: api.calistalife.com: getaddrinfo ENOTFOUND api.calistalife.com"
+    },
+    "scripts": {
+      "status": "passed",
+      "score": 100,
+      "message": "All launch scripts ready"
+    }
+  },
+  "recommendations": [
+    "⚠️  git: Uncommitted changes - run git add . && git commit && git push",
+    "❌ environment: Missing: VITE_GA4_MEASUREMENT_ID, VITE_SENTRY_DSN",
+    "❌ backend: Backend not accessible: getaddrinfo ENOTFOUND api.calistalife.com",
+    "❌ ssl: Issues: api.calistalife.com: getaddrinfo ENOTFOUND api.calistalife.com"
+  ]
+}

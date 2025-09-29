@@ -1,0 +1,16 @@
+{
+  "refreshInterval": "1h",
+  "alertThresholds": {
+    "CAC": 52.5,
+    "ROAS": 2.4499999999999997,
+    "conversion_rate": 0.0125,
+    "email_deliverability": 0.855
+  },
+  "dataConnections": {
+    "ga4": "G-FL9QNKMXPX",
+    "facebook": "automated_reporting",
+    "google_ads": "automated_reporting",
+    "brevo": "webhook_events",
+    "stripe": "revenue_tracking"
+  }
+}

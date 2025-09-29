@@ -50,14 +50,15 @@ interface OrderData {
 }
 
 class MarketingCampaigns {
-  private readonly brevoApiKey: string;
-  private readonly brevoBaseUrl = 'https://api.brevo.com/v3';
-  private readonly smsApiKey: string;
-  private readonly smsBaseUrl = 'https://api.twilio.com/2010-04-01';
+  private readonly apiBaseUrl: string;
+  private readonly clientTrackingKey: string;
 
   constructor() {
-    this.brevoApiKey = import.meta.env.VITE_BREVO_API_KEY || '';
-    this.smsApiKey = import.meta.env.VITE_TWILIO_API_KEY || '';
+    this.apiBaseUrl = import.meta.env.VITE_API_URL || '/api';
+    this.clientTrackingKey = import.meta.env.VITE_BREVO_CLIENT_KEY || '';
+    
+    // SECURITY: Never use BREVO_API_KEY on frontend - all email sending goes through backend API
+    console.warn('MarketingCampaigns: Using backend API proxy for secure email operations');
   }
 
   // Send welcome email to new subscribers
@@ -81,15 +82,19 @@ class MarketingCampaigns {
     };
 
     try {
-      const response = await this.sendBrevoEmail({
-        to: [{ email: userEmail, name: `${userData.firstName || ''} ${userData.lastName || ''}`.trim() }],
-        templateId: 1, // Welcome template ID in Brevo
-        params: {
-          FIRST_NAME: userData.firstName || 'Valued Customer',
-          QUALITY_PROMISE: 'Premium craftsmanship in every piece',
-          SUSTAINABILITY_MESSAGE: 'Sustainable fashion for conscious consumers',
-          WELCOME_DISCOUNT: 'WELCOME15',
-        }
+      // Send email via secure backend API
+      const response = await fetch(`${this.apiBaseUrl}/email/welcome`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: userEmail,
+          firstName: userData.firstName || 'Valued Customer',
+          lastName: userData.lastName || '',
+          preferences: userData.preferences || [],
+          campaignId: campaignData.campaign_id
+        })
       });
 
       analytics.trackCustomEvent('welcome_email_sent', {
@@ -130,18 +135,18 @@ class MarketingCampaigns {
     };
 
     try {
-      // Send email
-      await this.sendBrevoEmail({
-        to: [{ email: cartData.user_email }],
-        templateId: campaignStage === 1 ? 2 : campaignStage === 2 ? 3 : 4,
-        params: {
-          CART_VALUE: cartData.cart_value.toFixed(2),
-          ITEM_COUNT: cartData.items.length,
-          FIRST_ITEM_NAME: cartData.items[0]?.name || '',
-          FIRST_ITEM_IMAGE: cartData.items[0]?.image_url || '',
-          CART_URL: `${window.location.origin}/cart?recover=${cartData.cart_id}`,
-          DISCOUNT_CODE: campaignStage === 3 ? 'SAVE10NOW' : undefined,
-        }
+      // Send email via secure backend API
+      const response = await fetch(`${this.apiBaseUrl}/email/abandoned-cart`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          cartData,
+          campaignStage,
+          hoursAbandoned: Math.round(hoursAbandoned),
+          campaignId: campaignData.campaign_id
+        })
       });
 
       // Send SMS for stage 2 and 3 if phone number available
@@ -187,17 +192,23 @@ class MarketingCampaigns {
     };
 
     try {
-      await this.sendBrevoEmail({
-        to: [{ email: orderData.user_email }],
-        templateId: 5, // Order confirmation template
-        params: {
-          ORDER_ID: orderData.order_id,
-          TOTAL_VALUE: orderData.total_value.toFixed(2),
-          ITEM_COUNT: orderData.items.length,
-          SHIPPING_NAME: orderData.shipping_address.name,
-          SHIPPING_ADDRESS: this.formatShippingAddress(orderData.shipping_address),
-          QUALITY_MESSAGE: qualityItems.length > 0 ? 
-            `${qualityItems.length} premium quality items in your order` : 
+      // Send order confirmation via secure backend API
+      const response = await fetch(`${this.apiBaseUrl}/email/order-confirmation`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          orderData,
+          qualityItemsCount: qualityItems.length,
+          sustainableItemsCount: sustainableItems.length,
+          campaignId: campaignData.campaign_id
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to send order confirmation: ${response.status}`);
+      }
             'Thank you for choosing quality fashion',
           SUSTAINABILITY_MESSAGE: sustainableItems.length > 0 ?
             `You've made ${sustainableItems.length} sustainable choices!` : '',
