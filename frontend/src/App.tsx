@@ -8,7 +8,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { ColorGradeOverlay } from './components/ColorGradeOverlay';
 import { analytics } from './lib/analytics';
 import { utmTracker } from './lib/utm-tracker';
-import { ErrorBoundary } from './components/ErrorBoundary';
+import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { AnalyticsTracker } from './components/AnalyticsTracker';
 import { sentry } from './lib/sentry';
 import { HomeAnimated } from './pages/HomeAnimated';

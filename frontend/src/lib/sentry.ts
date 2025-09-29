@@ -1,5 +1,11 @@
 import * as Sentry from '@sentry/react';
-import { BrowserTracing } from '@sentry/tracing';
+import React from 'react';
+import { 
+  useLocation, 
+  useNavigationType,
+  createRoutesFromChildren,
+  matchRoutes 
+} from 'react-router-dom';
 
 // Sentry configuration for CalistaLife.com
 export const initSentry = () => {
@@ -9,36 +15,18 @@ export const initSentry = () => {
     
     // Performance Monitoring
     integrations: [
-      new BrowserTracing({
-        // Track page loads and navigation
-        routingInstrumentation: Sentry.reactRouterV6Instrumentation(
-          React.useEffect,
-          useLocation,
-          useNavigationType,
-          createRoutesFromChildren,
-          matchRoutes
-        ),
-        
+      Sentry.browserTracingIntegration({
         // Track specific user interactions
-        tracingOrigins: [
+        tracePropagationTargets: [
           'localhost',
           /^https:\/\/api\.thecalista\.com/,
           /^https:\/\/thecalista\.com/,
           /^https:\/\/.*\.thecalista\.com/
         ],
-        
-        // Custom performance tracking
-        beforeNavigate: context => ({
-          ...context,
-          tags: {
-            section: 'navigation',
-            userType: localStorage.getItem('auth_token') ? 'authenticated' : 'anonymous'
-          }
-        }),
       }),
       
       // Track errors in specific contexts
-      new Sentry.Replay({
+      Sentry.replayIntegration({
         // Capture replays on errors and performance issues
         maskAllInputs: true,
         blockAllMedia: false,
@@ -133,28 +121,22 @@ export const reportMessage = (message: string, level: 'info' | 'warning' | 'erro
 
 // Performance tracking helpers
 export const trackPerformance = (name: string, operation: () => Promise<any>) => {
-  const transaction = Sentry.startTransaction({ name, op: 'custom' });
-  
-  return operation()
-    .then(result => {
-      transaction.setStatus('ok');
+  return Sentry.startSpan({ name, op: 'custom' }, async () => {
+    try {
+      const result = await operation();
       return result;
-    })
-    .catch(error => {
-      transaction.setStatus('internal_error');
+    } catch (error) {
       throw error;
-    })
-    .finally(() => {
-      transaction.finish();
-    });
+    }
+  });
 };
 
 // API call tracking
 export const trackAPICall = (url: string, method: string = 'GET') => {
-  return Sentry.startTransaction({
+  return Sentry.startSpan({
     name: `API ${method} ${url}`,
     op: 'http.client',
-    tags: {
+    attributes: {
       'http.method': method,
       'http.url': url,
     },
@@ -203,6 +185,12 @@ export const trackReviewError = (productId: string, error: Error, context?: Reco
     });
     Sentry.captureException(error);
   });
+};
+
+// Export sentry object with init function for backwards compatibility
+export const sentry = {
+  init: initSentry,
+  ...Sentry,
 };
 
 export default Sentry;

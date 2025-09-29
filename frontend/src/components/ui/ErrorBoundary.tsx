@@ -226,4 +226,5 @@ export const withErrorBoundary = <P extends object>(
   );
 };
 
+export { ErrorBoundary };
 export default ErrorBoundary;
