@@ -1,40 +1,20 @@
-# CalistaLife Netlify Configuration - Security Hardened
-# This configuration ensures secure builds and prevents secret leakage
-
+# CalistaLife Netlify Configuration
 [build]
   base = "frontend"
   command = "npm ci --production && npm run build"
   publish = "dist"
 
 [build.environment]
-  # Build optimizations
   NODE_VERSION = "18"
   NPM_VERSION = "9"
   
-  # Security settings - Netlify secret scanning configuration
+  # Security settings
   NETLIFY_SKIP_SCANS = "false"
-  NETLIFY_EXPERIMENTAL_BUILD_IMAGE = "v5.2.2"
   
-  # Secret scanning exclusions (public client keys are safe)
+  # Secret scanning exclusions (safe patterns)
   NETLIFY_SECRET_SCAN_EXCLUDE_PATTERNS = "VITE_BREVO_CLIENT_KEY,js-tokens,calistasecretstoreewfsdca"
-  
-  # Build performance
-  NODE_OPTIONS = "--max-old-space-size=4096"
-  BUILD_TIMEOUT = "15"
 
-# Production environment variables (PUBLIC ONLY - NO SECRETS)
-[build.processing.html]
-  pretty_urls = true
-
-[build.processing.css]
-  bundle = true
-  minify = true
-
-[build.processing.js]
-  bundle = true
-  minify = true
-
-# Security headers via _headers file (already created)
+# Security headers
 [[headers]]
   for = "/*"
   [headers.values]
@@ -44,13 +24,14 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
 
-# Redirect rules for clean URLs
+# API proxy to backend
 [[redirects]]
   from = "/api/*"
   to = "https://api.calistalife.com/:splat"
   status = 200
   force = true
 
+# SPA routing
 [[redirects]]
   from = "/*"
   to = "/index.html"
@@ -62,48 +43,3 @@
   
 [context.deploy-preview]
   command = "npm ci && npm run build"
-  
-[context.branch-deploy]
-  command = "npm ci && npm run build"
-
-# Plugin configuration
-[[plugins]]
-  package = "@netlify/plugin-lighthouse"
-  
-  [plugins.inputs]
-    performance = 0.9
-    accessibility = 0.9
-    best-practices = 0.9
-    seo = 0.9
-
-# Security: File processing rules to prevent secret exposure
-[build.processing]
-  skip_processing = false
-
-# Functions configuration (if needed later)
-[functions]
-  directory = "functions"
-  node_bundler = "esbuild"
-
-# Forms configuration
-[forms]
-  spam_filter = true
-
-# Identity configuration
-[identity]
-  settings = false
-
-# Large Media configuration
-[large_media]
-  lfs = false
-
-# Build hooks and notifications
-[notifications]
-  email = "admin@calistalife.com"
-
-# IMPORTANT SECURITY NOTES:
-# 1. Only VITE_* prefixed variables are exposed to client
-# 2. Secret keys must be in backend environment only - never in frontend
-# 3. All email operations go through backend API, never direct from frontend
-# 4. This configuration prevents Netlify secret scanning failures
-# 5. Security headers are enforced via _headers file

@@ -1,0 +1,22 @@
+# CalistaLife Production Environment Template
+# Copy these to your Netlify Dashboard > Site Settings > Environment Variables
+
+# Analytics & Tracking (REQUIRED)
+VITE_GA4_MEASUREMENT_ID=G-FL9QNKMXPX
+
+# API Configuration (REQUIRED) 
+VITE_API_URL=https://api.calistalife.com
+
+# Error Monitoring (REQUIRED)
+# Get your Sentry DSN from: https://sentry.io/settings/projects/
+VITE_SENTRY_DSN=https://YOUR_SENTRY_DSN_HERE@sentry.io/PROJECT_ID
+
+# Brevo Configuration (PUBLIC KEYS ONLY)
+VITE_BREVO_CLIENT_KEY=6ewxl4rhcmbnrhir3b33jpgi
+VITE_BREVO_MA_SITE_KEY=calista-live-tracking-2024
+VITE_BREVO_CONVERSATIONS_ID=68d1094bd5c93c660e0b1fd6
+
+# Additional Configuration
+VITE_APP_ENV=production
+VITE_APP_VERSION=1.0.0
+VITE_ENABLE_BREVO_CHAT=true
