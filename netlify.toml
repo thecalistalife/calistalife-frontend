@@ -7,6 +7,9 @@
 [build.environment]
   # Disable secrets scanning - frontend VITE_* environment variables are intentionally public
   SECRETS_SCAN_ENABLED = "false"
+  # Backup exclusion method if SECRETS_SCAN_ENABLED doesn't work
+  SECRETS_SCAN_OMIT_KEYS = "VITE_GA4_MEASUREMENT_ID,VITE_SENTRY_DSN,VITE_API_URL,VITE_APP_ENV"
+  SECRETS_SCAN_OMIT_PATHS = "dist/**,**/*.js.map,frontend/index.html,.env.example"
   NODE_VERSION = "18"
   NPM_VERSION = "9"
 
