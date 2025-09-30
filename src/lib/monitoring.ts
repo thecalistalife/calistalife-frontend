@@ -1,12 +1,13 @@
 import * as Sentry from '@sentry/react';
+import { config } from './config';
 
 export function initMonitoring() {
-  const dsn = import.meta.env.VITE_SENTRY_DSN as string | undefined;
+  const dsn = config.sentryDsn;
   if (!dsn) return;
 
   Sentry.init({
     dsn,
-    environment: import.meta.env.MODE,
+    environment: config.appEnv,
     tracesSampleRate: 0.2,
     integrations: [Sentry.browserTracingIntegration()],
   });

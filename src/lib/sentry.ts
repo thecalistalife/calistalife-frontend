@@ -6,12 +6,13 @@ import {
   createRoutesFromChildren,
   matchRoutes 
 } from 'react-router-dom';
+import { config } from './config';
 
 // Sentry configuration for CalistaLife.com
 export const initSentry = () => {
   Sentry.init({
-    dsn: import.meta.env.VITE_SENTRY_DSN, // Add to .env files
-    environment: import.meta.env.PROD ? 'production' : 'development',
+    dsn: config.sentryDsn,
+    environment: config.appEnv,
     
     // Performance Monitoring
     integrations: [
@@ -44,10 +45,14 @@ export const initSentry = () => {
     beforeSend(event, hint) {
       // Filter out development errors
       if (import.meta.env.DEV) {
-        console.group('🚨 Sentry Error Report');
-        console.error('Event:', event);
-        console.error('Hint:', hint);
-        console.groupEnd();
+        try {
+          console.group('🚨 Sentry Error Report');
+          console.error('Event:', JSON.stringify(event, null, 2));
+          console.error('Hint:', hint?.originalException?.message || 'No hint message');
+          console.groupEnd();
+        } catch (logError) {
+          // Silent fail for logging issues
+        }
       }
 
       // Filter out specific errors

@@ -209,7 +209,14 @@ class MarketingCampaigns {
       if (!response.ok) {
         throw new Error(`Failed to send order confirmation: ${response.status}`);
       }
-            'Thank you for choosing quality fashion',
+
+      // Send personalized email with quality focus
+      await this.sendBrevoEmail({
+        to: [{ email: orderData.user_email }],
+        templateId: 5, // Order confirmation template
+        params: {
+          ORDER_ID: orderData.order_id,
+          QUALITY_MESSAGE: 'Thank you for choosing quality fashion',
           SUSTAINABILITY_MESSAGE: sustainableItems.length > 0 ?
             `You've made ${sustainableItems.length} sustainable choices!` : '',
           CARE_INSTRUCTIONS_URL: `${window.location.origin}/care-guide`,

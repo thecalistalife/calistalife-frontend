@@ -219,7 +219,7 @@ export default function ProductEdit() {
             </div>
             
             <div className="grid grid-cols-1 gap-4 mt-4">
-              <textarea className="border rounded p-3" placeholder="Care Instructions (JSON format: [\"Machine wash cold\", \"Tumble dry low\"])" value={JSON.stringify(form.careInstructions||[])} onChange={e=>{ try { setForm({ ...form, careInstructions: JSON.parse(e.target.value) }); } catch {} }} />
+              <textarea className="border rounded p-3" placeholder="Care Instructions (JSON format: ['Machine wash cold', 'Tumble dry low'])" value={JSON.stringify(form.careInstructions||[])} onChange={e=>{ try { setForm({ ...form, careInstructions: JSON.parse(e.target.value) }); } catch { /* ignore parse errors */ } }} />
               <textarea className="border rounded p-3" placeholder="Certifications (JSON format: [\"GOTS\", \"OEKO-TEX\"])" value={JSON.stringify(form.certifications||[])} onChange={e=>{ try { setForm({ ...form, certifications: JSON.parse(e.target.value) }); } catch {} }} />
               <textarea className="border rounded p-3" placeholder="Lifestyle Tags (JSON format: [\"casual\", \"work\", \"weekend\"])" value={JSON.stringify(form.lifestyleTags||[])} onChange={e=>{ try { setForm({ ...form, lifestyleTags: JSON.parse(e.target.value) }); } catch {} }} />
               <textarea className="border rounded p-3" placeholder="Recommended For (JSON format: [\"office\", \"date night\", \"casual outings\"])" value={JSON.stringify(form.recommendedFor||[])} onChange={e=>{ try { setForm({ ...form, recommendedFor: JSON.parse(e.target.value) }); } catch {} }} />
