@@ -1,5 +1,5 @@
 // Core Web Vitals monitoring and performance tracking
-import { getCLS, getFID, getFCP, getLCP, getTTFB, onCLS, onFID, onFCP, onLCP, onTTFB } from 'web-vitals';
+import { onCLS, onFID, onFCP, onLCP, onTTFB } from 'web-vitals';
 import type { Metric } from 'web-vitals';
 import { config } from './config';
 
@@ -107,16 +107,10 @@ class WebVitalsManager {
 
   // Get initial metrics if available
   private async getInitialMetrics(): Promise<void> {
-    try {
-      // Try to get current values
-      getCLS((metric) => this.handleMetric(metric), { reportAllChanges: false });
-      getFCP((metric) => this.handleMetric(metric));
-      getLCP((metric) => this.handleMetric(metric), { reportAllChanges: false });
-      getTTFB((metric) => this.handleMetric(metric));
-      getFID((metric) => this.handleMetric(metric));
-    } catch (error) {
-      console.warn('Failed to get initial metrics:', error);
-    }
+    // Note: In newer web-vitals versions, we rely on the onXXX callbacks
+    // to capture metrics as they become available rather than trying to get
+    // immediate values with getXXX functions
+    console.log('Web Vitals initialized - metrics will be captured as they become available');
   }
 
   // Handle individual metric
